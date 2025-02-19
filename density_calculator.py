@@ -10,7 +10,7 @@ st.markdown("<h1 style='text-align: center;'>Project Density Analysis</h1>", uns
 st.sidebar.header("Plot Configuration")
 num_plots = st.sidebar.number_input("Number of Plots", min_value=1, max_value=10, value=1, step=1)
 
-project_name = st.sidebar.text_input("Project Name", value="My Real Estate Project")
+project_name = st.sidebar.text_input("Project Name", value="Area and Plot #")
 
 apply_efficiency_incentive = st.sidebar.checkbox("Apply 5% Efficiency Incentive")
 price_toggle = st.sidebar.radio("Specify Price For", ["Each Plot", "Total Project"])
@@ -64,46 +64,6 @@ for i in range(num_plots):
             step=1,
             key=f"coverage_{i}"
         )
-
-        max_height = st.number_input(
-            f"Plot {i + 1} Max Building Height (m)",
-            min_value=0.0,
-            value=15.0,
-            step=1.0,
-            key=f"max_height_{i}"
-        )
-
-        floor_height = st.number_input(
-            f"Plot {i + 1} Floor Height (m)",
-            min_value=0.0,
-            value=3.0,
-            step=0.5,
-            key=f"floor_height_{i}"
-        )
-
-        allow_extra_floors = st.checkbox(
-            f"Allow Extra Floors for Plot {i + 1}?",
-            value=False,
-            key=f"allow_extra_floors_{i}"
-        )
-
-        extra_floors = 0
-        cost_per_extra_floor = 0.0
-        if allow_extra_floors:
-            extra_floors = st.number_input(
-                f"Number of Extra Floors (Plot {i + 1})",
-                min_value=0,
-                value=1,
-                step=1,
-                key=f"extra_floors_{i}"
-            )
-            cost_per_extra_floor = st.number_input(
-                f"Cost per Extra Floor (Plot {i + 1}, €)",
-                min_value=0.0,
-                value=25000.0,
-                step=1000.0,
-                key=f"cost_per_extra_floor_{i}"
-            )
 
         num_zones = st.number_input(f"Number of Zones", min_value=1, max_value=3, value=1, step=1, key=f"zones_{i}")
         zones = []
@@ -186,7 +146,6 @@ if "calculated" in st.session_state and st.session_state["calculated"]:
         f"<div style='background-color:#7688f1;padding:10px;border-radius:5px;margin-bottom:10px;'>" +
         f"<b>Coverage Area:</b> {results['total_coverage_area']:,} m² " +
         f"<details><summary>Click to expand</summary>" +
-        f"Floor Allowance: {results['total_road_deduction']:,} m²<br>" +
         f"</details></div>",
         unsafe_allow_html=True
     )
