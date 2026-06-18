@@ -1,0 +1,9 @@
+# Allora brand theme — native Streamlit theming.
+# primaryColor drives the accent on radios, checkboxes, sliders and focus rings,
+# which is far more reliable than overriding BaseWeb internals via CSS.
+[theme]
+primaryColor = "#5EA8A8"          # Cymaris
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F3FAFF"  # Nivelle (input fills)
+textColor = "#0A2536"             # Noxen
+font = "sans serif"

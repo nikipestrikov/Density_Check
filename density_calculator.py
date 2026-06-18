@@ -13,8 +13,8 @@ st.markdown(streamlit_brand_css(), unsafe_allow_html=True)
 
 st.sidebar.image("assets/logos/allora_logo_white.png", width=130)
 st.markdown(
-    "<h1 style='text-align:center;margin-bottom:0;'>Density Analysis</h1>"
-    "<p style='text-align:center;color:#6E8597;margin-top:4px;'>"
+    "<h1 style='margin-bottom:0;'>Density Analysis</h1>"
+    "<p style='color:#6E8597;margin-top:4px;font-size:1.05rem;'>"
     "Buildable density & land-value feasibility</p>",
     unsafe_allow_html=True,
 )

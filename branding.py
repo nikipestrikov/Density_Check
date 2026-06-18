@@ -219,25 +219,41 @@ html, body, [class*="css"], .stApp, .stMarkdown, p, div, span, label, input,
 button, h1, h2, h3, h4, h5, h6 {{
   font-family:'Giga Sans', -apple-system, sans-serif !important;
 }}
+/* Keep Material icon glyphs on their icon font (the rule above would otherwise
+   turn ligatures like "keyboard_double_arrow_right" into literal text). */
+[data-testid="stIconMaterial"], .material-icons, .material-icons-outlined,
+.material-symbols-outlined, .material-symbols-rounded, span[translate="no"],
+.stApp i {{
+  font-family:'Material Symbols Rounded','Material Symbols Outlined',
+              'Material Icons' !important;
+}}
 .stApp {{ background:#FFFFFF; }}
 h1, h2, h3 {{ color:var(--noxen) !important; font-weight:700 !important; }}
 /* Top decoration bar -> brand gradient */
 [data-testid="stDecoration"] {{
   background-image:linear-gradient(90deg, var(--noxen), var(--cymaris)) !important;
 }}
-/* Accent for radios, checkboxes, sliders -> Cymaris */
-input[type="radio"], input[type="checkbox"] {{ accent-color:var(--cymaris); }}
-[data-baseweb="radio"] [data-checked="true"] div,
-[data-testid="stSidebar"] [data-baseweb="radio"] div[aria-checked="true"] {{
-  background-color:var(--cymaris) !important; border-color:var(--cymaris) !important;
-}}
-.stSlider [data-baseweb="slider"] div[role="slider"] {{ background:var(--cymaris) !important; }}
+/* Radio / checkbox / slider accents come from primaryColor in
+   .streamlit/config.toml (Cymaris) — more reliable than CSS overrides. */
 /* Sidebar -> Noxen panel */
 section[data-testid="stSidebar"] {{ background:var(--noxen); }}
 section[data-testid="stSidebar"] * {{ color:var(--nivelle) !important; }}
 section[data-testid="stSidebar"] .stTextInput input,
 section[data-testid="stSidebar"] .stNumberInput input {{
   color:var(--noxen) !important; background:var(--nivelle) !important;
+}}
+/* Number-input +/- steppers: make them clearly visible (Cymaris + white glyph)
+   instead of the faint default that blends into the input fill. */
+[data-testid="stNumberInputStepUp"], [data-testid="stNumberInputStepDown"] {{
+  background:var(--cymaris) !important; border:none !important;
+  color:#fff !important; opacity:1 !important; width:2.2rem;
+}}
+[data-testid="stNumberInputStepUp"]:hover,
+[data-testid="stNumberInputStepDown"]:hover {{
+  background:var(--navaris) !important;
+}}
+[data-testid="stNumberInputStepUp"] *, [data-testid="stNumberInputStepDown"] * {{
+  color:#fff !important; fill:#fff !important;
 }}
 /* Primary buttons -> Cymaris */
 .stButton>button, .stDownloadButton>button {{
