@@ -2,10 +2,22 @@ import streamlit as st
 
 from Calculations import green_area_formula, calculate_totals
 from reports import generate_excel_report, generate_pdf_report
+from branding import (
+    streamlit_brand_css, LOGO_DARK, NOXEN, CYMARIS, NAVARIS, CLARIA,
+)
 
 # Streamlit UI
-st.sidebar.image("logo.png", width=75)
-st.markdown("<h1 style='text-align: center;'>Project Density Analysis</h1>", unsafe_allow_html=True)
+st.set_page_config(page_title="Allora · Density Analysis",
+                   page_icon=str(LOGO_DARK), layout="wide")
+st.markdown(streamlit_brand_css(), unsafe_allow_html=True)
+
+st.sidebar.image("assets/logos/allora_logo_white.png", width=130)
+st.markdown(
+    "<h1 style='text-align:center;margin-bottom:0;'>Density Analysis</h1>"
+    "<p style='text-align:center;color:#6E8597;margin-top:4px;'>"
+    "Buildable density & land-value feasibility</p>",
+    unsafe_allow_html=True,
+)
 
 st.sidebar.header("Plot Configuration")
 num_plots = st.sidebar.number_input("Number of Plots", min_value=1, max_value=10, value=1, step=1)
@@ -119,8 +131,21 @@ for i in range(num_plots):
         plot_price = st.number_input(f"Price for Plot {i + 1}", min_value=0, step=1, format="%d", key=f"price_{i}") if price_toggle == "Each Plot" else 0
         total_price += plot_price
 
-        plots.append({"serial_number": serial_number, "plot_size": plot_size, "is_parceled": is_parceled, "road_deduction_percent": road_deduction_percent, "zones": zones, "coverage_percent": coverage_percent
-})
+        plots.append({
+            "serial_number": serial_number,
+            "plot_size": plot_size,
+            "is_parceled": is_parceled,
+            "road_deduction_percent": road_deduction_percent,
+            "zones": zones,
+            "coverage_percent": coverage_percent,
+            # These were previously collected from the UI but never passed
+            # through, so coverage/floors always evaluated to zero.
+            "max_height": max_height,
+            "floor_height": floor_height,
+            "allow_extra_floors": allow_extra_floors,
+            "extra_floors": extra_floors,
+            "cost_per_extra_floor": cost_per_extra_floor,
+        })
 
 if green_allocation_method == "Custom":
     st.sidebar.header("Custom Green Area Allocation")
@@ -158,38 +183,35 @@ if "calculated" in st.session_state and st.session_state["calculated"]:
     price_per_m2 = st.session_state["price_per_m2"]
     total_price = st.session_state["total_price"]
 
-    # Highlighted Statistics
-    st.markdown(
-        f"<div style='background-color:#d4edda;padding:10px;border-radius:5px;margin-bottom:10px;'>" +
-        f"<b>Price per Buildable Area:</b> €{price_per_m2:,.0f}/m²</div>",
-        unsafe_allow_html=True
-    )
-    st.markdown(
-        f"<div style='background-color:#fff3cd;padding:10px;border-radius:5px;margin-bottom:10px;'>" +
-        f"<b>Total Buildable Area:</b> {results['total_buildable_area']:,} m² " +
-        f"<details><summary>Click to expand</summary>" +
-        f"Residential: {results['residential_buildable_area']:,} m²<br>" +
-        f"Commercial: {results['commercial_buildable_area']:,} m²" +
-        f"</details></div>",
-        unsafe_allow_html=True
-    )
-    st.markdown(
-        f"<div style='background-color:#f8d7da;padding:10px;border-radius:5px;margin-bottom:10px;'>" +
-        f"<b>Total Deductions:</b> {results['total_road_deduction'] + results['total_green_deduction']:,} m² " +
-        f"<details><summary>Click to expand</summary>" +
-        f"Road: {results['total_road_deduction']:,} m²<br>" +
-        f"Public Green: {results['total_green_deduction']:,} m²" +
-        f"</details></div>",
-        unsafe_allow_html=True
-    )
-    st.markdown(
-        f"<div style='background-color:#7688f1;padding:10px;border-radius:5px;margin-bottom:10px;'>" +
-        f"<b>Coverage Area:</b> {results['total_coverage_area']:,} m² " +
-        f"<details><summary>Click to expand</summary>" +
-        f"Floor Allowance: {results['total_road_deduction']:,} m²<br>" +
-        f"</details></div>",
-        unsafe_allow_html=True
-    )
+    # Highlighted statistics — Allora brand KPI cards
+    def kpi(variant, label, value, detail=""):
+        detail_html = f"<div class='detail'>{detail}</div>" if detail else ""
+        return (
+            f"<div class='allora-kpi {variant}'>"
+            f"<div class='label'>{label}</div>"
+            f"<div class='value'>{value}</div>{detail_html}</div>"
+        )
+
+    deductions = results['total_road_deduction'] + results['total_green_deduction']
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown(kpi("kpi-cymaris", "Price per Buildable m²",
+                        f"€{price_per_m2:,.0f}"), unsafe_allow_html=True)
+        st.markdown(kpi("kpi-noxen", "Total Buildable Area",
+                        f"{results['total_buildable_area']:,} m²",
+                        f"Residential {results['residential_buildable_area']:,} m²"
+                        f" · Commercial {results['commercial_buildable_area']:,} m²"),
+                    unsafe_allow_html=True)
+    with c2:
+        st.markdown(kpi("kpi-navaris", "Total Deductions",
+                        f"{deductions:,} m²",
+                        f"Road {results['total_road_deduction']:,} m²"
+                        f" · Public Green {results['total_green_deduction']:,} m²"),
+                    unsafe_allow_html=True)
+        st.markdown(kpi("kpi-claria", "Coverage Area",
+                        f"{results['total_coverage_area']:,} m²",
+                        f"Max floors (sum) {results.get('total_max_floors', 0):,}"),
+                    unsafe_allow_html=True)
     # Excel Export
     excel_data = generate_excel_report(results, total_price, price_per_m2)
     st.download_button(
@@ -226,12 +248,3 @@ if "calculated" in st.session_state and st.session_state["calculated"]:
                     f"**Zone {j + 1}:** {zone['percentage']}% | Density Factor: {zone['density_factor']}% | " +
                     f"Type: {zone['density_type']} | Buildable Area: {zone_buildable_area:,} m²"
                 )
-
-        for j, zone_buildable_area in enumerate(plot["zone_buildable_areas"]):
-            zone = plot["zones"][j]
-            st.markdown(
-                f"**Zone {j + 1}:** {zone['percentage']}% | "
-                f"Density Factor: {zone['density_factor']}% | "
-                f"Type: {zone['density_type']} | "
-                f"Buildable Area: {zone_buildable_area:,} m²"
-            )
