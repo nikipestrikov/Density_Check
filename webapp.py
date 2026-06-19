@@ -61,7 +61,6 @@ def _parse_form(form) -> tuple[list[dict], float, bool, str]:
     for p in plot_indices:
         g = lambda name, d="": form.get(f"p{p}_{name}", d)
         parceled = f"p{p}_parceled" in form
-        allow_extra = f"p{p}_extra" in form
 
         zone_indices = sorted({
             int(m.group(1))
@@ -89,9 +88,6 @@ def _parse_form(form) -> tuple[list[dict], float, bool, str]:
             "coverage_percent": _num(g("coverage")),
             "max_height": _num(g("maxh")),
             "floor_height": _num(g("floorh")),
-            "allow_extra_floors": allow_extra,
-            "extra_floors": int(_num(g("nextra"))) if allow_extra else 0,
-            "cost_per_extra_floor": _num(g("ecost")) if allow_extra else 0.0,
         })
         total_each += _num(g("price"))
 

@@ -93,30 +93,6 @@ for i in range(num_plots):
             key=f"floor_height_{i}"
         )
 
-        allow_extra_floors = st.checkbox(
-            f"Allow Extra Floors for Plot {i + 1}?",
-            value=False,
-            key=f"allow_extra_floors_{i}"
-        )
-
-        extra_floors = 0
-        cost_per_extra_floor = 0.0
-        if allow_extra_floors:
-            extra_floors = st.number_input(
-                f"Number of Extra Floors (Plot {i + 1})",
-                min_value=0,
-                value=1,
-                step=1,
-                key=f"extra_floors_{i}"
-            )
-            cost_per_extra_floor = st.number_input(
-                f"Cost per Extra Floor (Plot {i + 1}, €)",
-                min_value=0.0,
-                value=25000.0,
-                step=1000.0,
-                key=f"cost_per_extra_floor_{i}"
-            )
-
         num_zones = st.number_input(f"Number of Zones", min_value=1, max_value=3, value=1, step=1, key=f"zones_{i}")
         zones = []
         remaining_percentage = 100
@@ -138,13 +114,9 @@ for i in range(num_plots):
             "road_deduction_percent": road_deduction_percent,
             "zones": zones,
             "coverage_percent": coverage_percent,
-            # These were previously collected from the UI but never passed
-            # through, so coverage/floors always evaluated to zero.
+            # Passed through so coverage/floors compute correctly.
             "max_height": max_height,
             "floor_height": floor_height,
-            "allow_extra_floors": allow_extra_floors,
-            "extra_floors": extra_floors,
-            "cost_per_extra_floor": cost_per_extra_floor,
         })
 
 if green_allocation_method == "Custom":

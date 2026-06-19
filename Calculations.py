@@ -51,7 +51,6 @@ def calculate_totals(plots, apply_efficiency_incentive, green_allocation_method,
     # ─────────────────────────────────────────────────────────
     total_coverage_area = 0
     total_max_floors = 0
-    total_extra_floors_cost = 0
 
     for plot in plots:
         # ─────────────────────────────────────────────────────
@@ -92,32 +91,15 @@ def calculate_totals(plots, apply_efficiency_incentive, green_allocation_method,
         max_height = plot.get("max_height", 0)
         floor_height = plot.get("floor_height", 0)
         if floor_height > 0:
-            base_floors = int(max_height // floor_height)
+            total_floors = int(max_height // floor_height)
         else:
-            base_floors = 0  # If no valid floor height, no floors
-
-        # ─────────────────────────────────────────────────────
-        # 3) Handle extra floors logic (if toggled on this plot)
-        # ─────────────────────────────────────────────────────
-        allow_extra_floors = plot.get("allow_extra_floors", False)
-        extra_floors = plot.get("extra_floors", 0)
-        cost_per_extra_floor = plot.get("cost_per_extra_floor", 0.0)
-
-        if allow_extra_floors and extra_floors > 0:
-            total_floors = base_floors + extra_floors
-            extra_floors_cost = extra_floors * cost_per_extra_floor
-        else:
-            total_floors = base_floors
-            extra_floors_cost = 0.0
+            total_floors = 0  # If no valid floor height, no floors
 
         plot["max_floors"] = total_floors
-        plot["extra_floors_cost"] = extra_floors_cost
-
         total_max_floors += total_floors
-        total_extra_floors_cost += extra_floors_cost
 
         # ─────────────────────────────────────────────────────
-        # 4) Incorporate coverage area with floors if needed
+        # 3) Incorporate coverage area with floors if needed
         # ─────────────────────────────────────────────────────
         # "max_buildable_area" depends on coverage and total floors
         max_buildable_area = coverage_area * total_floors
@@ -176,7 +158,6 @@ def calculate_totals(plots, apply_efficiency_incentive, green_allocation_method,
         # Coverage & floor-related totals
         "total_coverage_area": round(total_coverage_area),
         "total_max_floors": total_max_floors,
-        "total_extra_floors_cost": round(total_extra_floors_cost),
         "plots": plots
     }
 
