@@ -1,4 +1,7 @@
-streamlit
-pandas
+fastapi
+jinja2
+python-multipart
 fpdf2
+pandas
 xlsxwriter
+uvicorn[standard]

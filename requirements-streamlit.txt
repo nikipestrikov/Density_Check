@@ -1,0 +1,6 @@
+# Legacy Streamlit app (density_calculator.py) only.
+# The web app uses requirements.txt. Install with:  pip install -r requirements-streamlit.txt
+streamlit
+pandas
+fpdf2
+xlsxwriter

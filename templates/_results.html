@@ -1,0 +1,84 @@
+<section class="card" id="results-card">
+  <div class="section-label"><h2>Results</h2></div>
+  <p class="sub">{{ project_name }}</p>
+
+  <div class="kpis">
+    <div class="kpi k-noxen">
+      <div class="k-label">Total Buildable Area</div>
+      <div class="k-value">{{ "{:,}".format(r.total_buildable_area) }} m²</div>
+      <div class="k-detail">Residential {{ "{:,}".format(r.residential_buildable_area) }} m²
+        · Commercial {{ "{:,}".format(r.commercial_buildable_area) }} m²</div>
+    </div>
+    <div class="kpi k-cymaris">
+      <div class="k-label">Price / Buildable m²</div>
+      <div class="k-value">€{{ "{:,.0f}".format(price_per_m2) }}</div>
+    </div>
+    <div class="kpi k-navaris">
+      <div class="k-label">Total Deductions</div>
+      <div class="k-value">{{ "{:,}".format(deductions) }} m²</div>
+      <div class="k-detail">Road {{ "{:,}".format(r.total_road_deduction) }}
+        · Green {{ "{:,}".format(r.total_green_deduction) }}</div>
+    </div>
+    <div class="kpi k-claria">
+      <div class="k-label">Coverage Area</div>
+      <div class="k-value">{{ "{:,}".format(r.total_coverage_area) }} m²</div>
+      <div class="k-detail">Max floors (sum) {{ "{:,}".format(r.total_max_floors) }}</div>
+    </div>
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th>Plot</th><th>Size (m²)</th><th>Road (m²)</th>
+            <th>Green (m²)</th><th>Net (m²)</th></tr>
+      </thead>
+      <tbody>
+        {% set ns = namespace(ps=0, rd=0, gr=0, net=0) %}
+        {% for p in r.plots %}
+          {% set ns.ps = ns.ps + p.plot_size|round|int %}
+          {% set ns.rd = ns.rd + p.road_deduction|round|int %}
+          {% set ns.gr = ns.gr + p.green_deduction|round|int %}
+          {% set ns.net = ns.net + p.net_plot_size|round|int %}
+          <tr>
+            <td>{{ p.serial_number }}</td>
+            <td>{{ "{:,}".format(p.plot_size|round|int) }}</td>
+            <td>{{ "{:,}".format(p.road_deduction|round|int) }}</td>
+            <td>{{ "{:,}".format(p.green_deduction|round|int) }}</td>
+            <td>{{ "{:,}".format(p.net_plot_size|round|int) }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr><td>Total</td>
+          <td>{{ "{:,}".format(ns.ps) }}</td>
+          <td>{{ "{:,}".format(ns.rd) }}</td>
+          <td>{{ "{:,}".format(ns.gr) }}</td>
+          <td>{{ "{:,}".format(ns.net) }}</td></tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="breakdown">
+    {% for p in r.plots %}
+    <details>
+      <summary>{{ p.serial_number }} — net {{ "{:,}".format(p.net_plot_size|round|int) }} m²</summary>
+      <div class="bd">
+        {% for z in p.zones %}
+        <div class="row"><span>Zone {{ loop.index }} · {{ z.density_type }}
+          ({{ z.percentage }}% @ {{ z.density_factor }}%)</span>
+          <b>{{ "{:,}".format(p.zone_buildable_areas[loop.index0]) }} m²</b></div>
+        {% endfor %}
+        <div class="row"><span>Coverage area</span>
+          <b>{{ "{:,}".format(p.coverage_area|round|int) }} m²</b></div>
+        <div class="row"><span>Max floors</span><b>{{ p.max_floors }}</b></div>
+      </div>
+    </details>
+    {% endfor %}
+  </div>
+
+  <!-- Report downloads: JS fetch+blob (bypasses the form's hx-post) -->
+  <div class="btn-row" style="margin-top:14px;">
+    <button class="btn btn-ghost" type="button" data-download="/report.pdf">⬇ PDF report</button>
+    <button class="btn btn-ghost" type="button" data-download="/report.xlsx">⬇ Excel</button>
+  </div>
+</section>

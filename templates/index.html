@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="wrap">
+  <form id="density-form" hx-post="/calculate" hx-target="#results"
+        hx-swap="innerHTML" hx-indicator="#calc-btn" data-price-mode="each">
+
+    <!-- Project settings -->
+    <section class="card">
+      <div class="section-label"><h2>Project</h2></div>
+      <div class="field">
+        <label for="project_name">Project name</label>
+        <input type="text" id="project_name" name="project_name"
+               value="My Real Estate Project" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label>Specify price for</label>
+        <div class="seg" id="price-mode">
+          <label><input type="radio" name="price_mode" value="each" checked>
+            <span>Each plot</span></label>
+          <label><input type="radio" name="price_mode" value="total">
+            <span>Total project</span></label>
+        </div>
+      </div>
+
+      <div class="field only-total" hidden>
+        <label for="total_price">Total project price (€)</label>
+        <input type="text" id="total_price" name="total_price" inputmode="numeric"
+               value="100,000">
+      </div>
+
+      <label class="check">
+        <input type="checkbox" name="efficiency"> Apply 5% efficiency incentive
+      </label>
+    </section>
+
+    <!-- Plots -->
+    <section class="card">
+      <div class="section-label"><h2>Plots</h2></div>
+      <div id="plots"></div>
+      <button type="button" class="btn btn-ghost" id="add-plot">+ Add plot</button>
+    </section>
+
+    <!-- Calculate -->
+    <div class="actionbar">
+      <div class="inner">
+        <button type="submit" class="btn btn-primary" id="calc-btn">
+          Calculate <span class="htmx-indicator">…</span>
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <div id="results"></div>
+</main>
+
+<!-- ============ Templates cloned by app.js ============ -->
+<template id="plot-tpl">
+  <details class="plot" open data-plot="__P__">
+    <summary>
+      <span class="plot-title">Plot __N__</span>
+      <span style="display:flex;align-items:center;gap:12px;">
+        <button type="button" class="btn-link btn-sm" data-remove-plot>Remove</button>
+        <span class="chev">▾</span>
+      </span>
+    </summary>
+    <div class="body">
+      <div class="grid cols-2">
+        <div class="field">
+          <label>Serial number</label>
+          <input type="text" name="p__P___serial" value="Plot-__N__">
+        </div>
+        <div class="field">
+          <label>Plot size (m²)</label>
+          <input type="text" name="p__P___size" inputmode="numeric" value="1,000">
+        </div>
+      </div>
+
+      <label class="check">
+        <input type="checkbox" name="p__P___parceled" data-toggle="#road-__P__" data-invert checked>
+        Plot is parceled
+      </label>
+      <div class="field" id="road-__P__" hidden>
+        <label>Road deduction (%)</label>
+        <input type="number" name="p__P___road" value="10" min="0" max="50" step="1">
+      </div>
+
+      <div class="grid cols-3">
+        <div class="field">
+          <label>Coverage (%)</label>
+          <input type="number" name="p__P___coverage" value="50" min="0" max="100">
+        </div>
+        <div class="field">
+          <label>Max height (m)</label>
+          <input type="number" name="p__P___maxh" value="15" min="0" step="0.5">
+        </div>
+        <div class="field">
+          <label>Floor height (m)</label>
+          <input type="number" name="p__P___floorh" value="3" min="0.5" step="0.5">
+        </div>
+      </div>
+
+      <label class="check">
+        <input type="checkbox" name="p__P___extra" data-toggle="#extra-__P__">
+        Allow extra floors
+      </label>
+      <div class="grid cols-2" id="extra-__P__" hidden>
+        <div class="field">
+          <label>Number of extra floors</label>
+          <input type="number" name="p__P___nextra" value="1" min="0">
+        </div>
+        <div class="field">
+          <label>Cost per extra floor (€)</label>
+          <input type="text" name="p__P___ecost" inputmode="numeric" value="25,000">
+        </div>
+      </div>
+
+      <div class="field only-each">
+        <label>Price for this plot (€)</label>
+        <input type="text" name="p__P___price" inputmode="numeric" value="0">
+      </div>
+
+      <div class="section-label" style="margin-top:6px;"><small><b>Zones</b></small></div>
+      <div class="zones" data-zones></div>
+      <button type="button" class="btn btn-ghost btn-sm" data-add-zone>+ Add zone</button>
+    </div>
+  </details>
+</template>
+
+<template id="zone-tpl">
+  <div class="zone" data-zone="__Z__">
+    <div class="zh"><b>Zone __M__</b>
+      <button type="button" class="btn-link btn-sm" data-remove-zone>Remove</button></div>
+    <div class="grid cols-3">
+      <div class="field">
+        <label>Share (%)</label>
+        <input type="number" name="p__P___z__Z___pct" value="100" min="0" max="100">
+      </div>
+      <div class="field">
+        <label>Density (%)</label>
+        <input type="number" name="p__P___z__Z___density" value="50" min="0">
+      </div>
+      <div class="field">
+        <label>Type</label>
+        <select name="p__P___z__Z___type">
+          <option>Residential</option>
+          <option>Commercial</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</template>
+{% endblock %}

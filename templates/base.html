@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0A2536">
+  <title>{% block title %}Allora · Density Analysis{% endblock %}</title>
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="/static/css/brand.css">
+  <script src="/static/js/htmx.min.js" defer></script>
+</head>
+<body>
+  <header class="appbar">
+    <img src="/assets/logos/allora_logo_white.png" alt="Allora">
+    <span class="titles">
+      <b>Density Analysis</b>
+      <span>LAND FEASIBILITY</span>
+    </span>
+  </header>
+
+  {% block content %}{% endblock %}
+
+  <script src="/static/js/app.js" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () =>
+        navigator.serviceWorker.register("/static/sw.js").catch(() => {}));
+    }
+  </script>
+</body>
+</html>
