@@ -40,6 +40,7 @@ def generate_pdf_report(results, total_price, price_per_m2, project_name):
         ("Commercial", f"{round(results['commercial_buildable_area']):,} m²"),
         ("Total Deductions", f"{round(deductions):,} m²"),
         ("Coverage Area", f"{round(results.get('total_coverage_area', 0)):,} m²"),
+        ("Avg Coverage", f"{round(results.get('avg_coverage', 0)):,}%"),
         ("Price / Buildable m²", f"EUR {round(price_per_m2):,}"),
     ]
     _stat_cards(pdf, cards, per_row=3)
@@ -169,6 +170,7 @@ def generate_excel_report(results, total_price, price_per_m2):
             "Road Deduction (m²)",
             "Public Green Deduction (m²)",
             "Coverage Area (m²)",
+            "Avg Coverage (%)",
             "Price per Buildable m² (EUR)",
         ],
         "Value": [
@@ -180,6 +182,7 @@ def generate_excel_report(results, total_price, price_per_m2):
             results["total_road_deduction"],
             results["total_green_deduction"],
             results.get("total_coverage_area", 0),
+            results.get("avg_coverage", 0),
             round(price_per_m2, 2),
         ],
     })
@@ -196,6 +199,8 @@ def generate_excel_report(results, total_price, price_per_m2):
                 "Net Land Area (m²)": plot["net_plot_size"],
                 "Zone": f"Zone {j + 1}",
                 "Zone Percentage (%)": zone["percentage"],
+                "Coverage Factor (%)": zone.get("coverage_factor", 0),
+                "Zone Coverage Area (m²)": plot["zone_coverage_areas"][j],
                 "Density Factor (%)": zone["density_factor"],
                 "Zone Type": zone["density_type"],
                 "Buildable Area (m²)": zone_buildable_area,

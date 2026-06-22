@@ -85,11 +85,7 @@
         <input type="number" name="p__P___road" value="10" min="0" max="50" step="1">
       </div>
 
-      <div class="grid cols-3">
-        <div class="field">
-          <label>Coverage (%)</label>
-          <input type="number" name="p__P___coverage" value="50" min="0" max="100">
-        </div>
+      <div class="grid cols-2">
         <div class="field">
           <label>Max height (m)</label>
           <input type="number" name="p__P___maxh" value="15" min="0" step="0.5">
@@ -116,10 +112,14 @@
   <div class="zone" data-zone="__Z__">
     <div class="zh"><b>Zone __M__</b>
       <button type="button" class="btn-link btn-sm" data-remove-zone>Remove</button></div>
-    <div class="grid cols-3">
+    <div class="grid cols-2">
       <div class="field">
-        <label>Share (%)</label>
+        <label>Share of plot (%)</label>
         <input type="number" name="p__P___z__Z___pct" value="100" min="0" max="100">
+      </div>
+      <div class="field">
+        <label>Coverage (%)</label>
+        <input type="number" name="p__P___z__Z___coverage" value="50" min="0" max="100">
       </div>
       <div class="field">
         <label>Density (%)</label>

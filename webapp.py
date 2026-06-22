@@ -73,11 +73,12 @@ def _parse_form(form) -> tuple[list[dict], float, bool, str]:
                 zones.append({
                     "percentage": pct,
                     "density_factor": _num(form.get(f"p{p}_z{z}_density")),
+                    "coverage_factor": _num(form.get(f"p{p}_z{z}_coverage")),
                     "density_type": form.get(f"p{p}_z{z}_type", "Residential"),
                 })
         if not zones:
             zones = [{"percentage": 100, "density_factor": 0,
-                      "density_type": "Residential"}]
+                      "coverage_factor": 0, "density_type": "Residential"}]
 
         plots.append({
             "serial_number": g("serial") or f"Plot-{p + 1}",
@@ -85,7 +86,6 @@ def _parse_form(form) -> tuple[list[dict], float, bool, str]:
             "is_parceled": parceled,
             "road_deduction_percent": 0 if parceled else _num(g("road")),
             "zones": zones,
-            "coverage_percent": _num(g("coverage")),
             "max_height": _num(g("maxh")),
             "floor_height": _num(g("floorh")),
         })

@@ -22,7 +22,8 @@
     <div class="kpi k-claria">
       <div class="k-label">Coverage Area</div>
       <div class="k-value">{{ "{:,}".format(r.total_coverage_area) }} m²</div>
-      <div class="k-detail">Max floors (sum) {{ "{:,}".format(r.total_max_floors) }}</div>
+      <div class="k-detail">Avg coverage {{ r.avg_coverage }}%
+        · Max floors {{ "{:,}".format(r.total_max_floors) }}</div>
     </div>
   </div>
 
@@ -65,7 +66,7 @@
       <div class="bd">
         {% for z in p.zones %}
         <div class="row"><span>Zone {{ loop.index }} · {{ z.density_type }}
-          ({{ z.percentage }}% @ {{ z.density_factor }}%)</span>
+          ({{ z.percentage|round|int }}% · cov {{ z.coverage_factor|round|int }}% · den {{ z.density_factor|round|int }}%)</span>
           <b>{{ "{:,}".format(p.zone_buildable_areas[loop.index0]) }} m²</b></div>
         {% endfor %}
         <div class="row"><span>Coverage area</span>

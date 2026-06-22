@@ -51,6 +51,8 @@ def calculate_totals(plots, apply_efficiency_incentive, green_allocation_method,
     # ─────────────────────────────────────────────────────────
     total_coverage_area = 0
     total_max_floors = 0
+    coverage_weighted_sum = 0   # Σ (zone_area × coverage_factor) — weighted avg numerator
+    zoned_area = 0              # Σ zone_area — weighted avg denominator
 
     for plot in plots:
         # ─────────────────────────────────────────────────────
@@ -78,40 +80,24 @@ def calculate_totals(plots, apply_efficiency_incentive, green_allocation_method,
             total_green_deduction += green_deduction
 
         # ─────────────────────────────────────────────────────
-        # 1) Calculate coverage area (if coverage_percent exists)
-        # ─────────────────────────────────────────────────────
-        coverage_percent = plot.get("coverage_percent", 0)
-        coverage_area = plot["net_plot_size"] * (coverage_percent / 100)
-        plot["coverage_area"] = coverage_area
-        total_coverage_area += coverage_area  # Summation if needed
-
-        # ─────────────────────────────────────────────────────
-        # 2) Determine how many floors are possible
+        # 1) Floors possible (from building height — plot level)
         # ─────────────────────────────────────────────────────
         max_height = plot.get("max_height", 0)
         floor_height = plot.get("floor_height", 0)
-        if floor_height > 0:
-            total_floors = int(max_height // floor_height)
-        else:
-            total_floors = 0  # If no valid floor height, no floors
-
+        total_floors = int(max_height // floor_height) if floor_height > 0 else 0
         plot["max_floors"] = total_floors
         total_max_floors += total_floors
 
         # ─────────────────────────────────────────────────────
-        # 3) Incorporate coverage area with floors if needed
-        # ─────────────────────────────────────────────────────
-        # "max_buildable_area" depends on coverage and total floors
-        max_buildable_area = coverage_area * total_floors
-        plot["max_buildable_area"] = max_buildable_area
-
-        # ─────────────────────────────────────────────────────
-        # Continue your existing zone-based buildable area logic
+        # 2) Zone-based density AND coverage — both area-weighted
         # ─────────────────────────────────────────────────────
         plot["zone_buildable_areas"] = []
+        plot["zone_coverage_areas"] = []
+        plot_coverage_area = 0
         for zone in plot["zones"]:
             zone_area = plot["net_plot_size"] * (zone["percentage"] / 100)
             density_factor = zone["density_factor"]
+            coverage_factor = zone.get("coverage_factor", 0)
             density_type = zone["density_type"].lower()
 
             match density_type:
@@ -124,14 +110,32 @@ def calculate_totals(plots, apply_efficiency_incentive, green_allocation_method,
                 case _:
                     pass  # Handle unrecognized density types
 
+            # Density → buildable area (per zone)
             buildable_area = (zone_area * density_factor) / 100
             plot["zone_buildable_areas"].append(round(buildable_area))
+
+            # Coverage → footprint area (per zone), area-weighted like density
+            zone_coverage_area = (zone_area * coverage_factor) / 100
+            plot["zone_coverage_areas"].append(round(zone_coverage_area))
+            plot_coverage_area += zone_coverage_area
+            coverage_weighted_sum += zone_area * coverage_factor
+            zoned_area += zone_area
+
+        # ─────────────────────────────────────────────────────
+        # 3) Plot coverage totals & max buildable (coverage × floors)
+        # ─────────────────────────────────────────────────────
+        plot["coverage_area"] = round(plot_coverage_area)
+        total_coverage_area += plot_coverage_area
+        plot["max_buildable_area"] = plot_coverage_area * total_floors
 
     # ─────────────────────────────────────────────────────────
     # Calculate averages & buildable areas for commercials/residential
     # ─────────────────────────────────────────────────────────
     commercial_density_avg = (commercial_density_sum / commercial_area) if commercial_area else 0
     residential_density_avg = (residential_density_sum / residential_area) if residential_area else 0
+
+    # Area-weighted average coverage across all zones (same method as density)
+    avg_coverage = (coverage_weighted_sum / zoned_area) if zoned_area else 0
 
     commercial_buildable_area = (commercial_area * commercial_density_avg) / 100
     residential_buildable_area = (residential_area * residential_density_avg) / 100
@@ -157,6 +161,7 @@ def calculate_totals(plots, apply_efficiency_incentive, green_allocation_method,
         "total_buildable_area": round(total_buildable_area),
         # Coverage & floor-related totals
         "total_coverage_area": round(total_coverage_area),
+        "avg_coverage": round(avg_coverage),
         "total_max_floors": total_max_floors,
         "plots": plots
     }

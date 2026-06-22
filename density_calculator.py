@@ -68,15 +68,6 @@ for i in range(num_plots):
         if not is_parceled:
             road_deduction_percent = st.slider(f"Plot {i + 1} Road Deduction (%)", min_value=0, max_value=50, value=10, step=1, key=f"road_{i}")
 
-        coverage_percent = st.slider(
-            f"Plot {i + 1} Coverage (%)",
-            min_value=0,
-            max_value=100,
-            value=50,  # default or adjust as needed
-            step=1,
-            key=f"coverage_{i}"
-        )
-
         max_height = st.number_input(
             f"Plot {i + 1} Max Building Height (m)",
             min_value=0.0,
@@ -100,9 +91,10 @@ for i in range(num_plots):
         for j in range(int(num_zones)):
             percentage = st.slider(f"Zone {j + 1} %", min_value=0, max_value=remaining_percentage, value=remaining_percentage, step=1, key=f"zone_{i}_{j}")
             remaining_percentage -= percentage
+            coverage_factor = st.number_input(f"Zone {j + 1} Coverage (%)", min_value=0, max_value=100, value=50, step=1, key=f"coverage_{i}_{j}")
             density_factor = st.number_input(f"Zone {j + 1} Density Factor (%)", min_value=0, value=50, step=1, key=f"density_{i}_{j}")
             density_type = st.selectbox(f"Zone {j + 1} Type", ["Residential", "Commercial"], key=f"type_{i}_{j}")
-            zones.append({"percentage": percentage, "density_factor": density_factor, "density_type": density_type})
+            zones.append({"percentage": percentage, "coverage_factor": coverage_factor, "density_factor": density_factor, "density_type": density_type})
 
         plot_price = st.number_input(f"Price for Plot {i + 1}", min_value=0, step=1, format="%d", key=f"price_{i}") if price_toggle == "Each Plot" else 0
         total_price += plot_price
@@ -113,8 +105,7 @@ for i in range(num_plots):
             "is_parceled": is_parceled,
             "road_deduction_percent": road_deduction_percent,
             "zones": zones,
-            "coverage_percent": coverage_percent,
-            # Passed through so coverage/floors compute correctly.
+            # Coverage is now per-zone (inside `zones`). Floors still plot-level.
             "max_height": max_height,
             "floor_height": floor_height,
         })
