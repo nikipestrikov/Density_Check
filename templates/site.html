@@ -19,19 +19,19 @@
 
     <section class="card">
       <div class="section-label"><h2>Massing parameters</h2></div>
+      <p class="sub">The tool picks the best building typology for the plot
+        (slab / gallery / towers) and orientation automatically.</p>
       <div class="grid cols-2">
         <div class="field"><label>Setback (m, all sides)</label>
           <input type="number" name="setback" value="3" min="0" step="0.5"></div>
         <div class="field"><label>Coverage cap (%)</label>
           <input type="number" name="coverage_cap" value="50" min="0" max="100"></div>
-        <div class="field"><label>Building depth (m)</label>
-          <input type="number" name="depth" value="14" min="6" step="0.5"></div>
-        <div class="field"><label>Gap between blocks (m)</label>
-          <input type="number" name="gap" value="16" min="0" step="0.5"></div>
         <div class="field"><label>Floors</label>
           <input type="number" name="floors" value="8" min="1"></div>
-        <div class="field"><label>Net efficiency (%)</label>
-          <input type="number" name="efficiency" value="82" min="1" max="100"></div>
+        <div class="field"><label>Floor height (m)</label>
+          <input type="number" name="floor_height" value="3" min="2" step="0.1"></div>
+        <div class="field"><label>Min gap between blocks (m)</label>
+          <input type="number" name="gap" value="8" min="0" step="0.5"></div>
         <div class="field"><label>Covered veranda (%)</label>
           <input type="number" name="veranda" value="25" min="0" max="100"></div>
       </div>

@@ -3,8 +3,10 @@
 
   <div class="site-diagram">{{ r.svg|safe }}</div>
   <p class="sub" style="margin-top:8px;">
-    Buildable envelope (dashed) = plot − {{ r.params.setback|round|int }} m setback ·
-    {{ r.n_bars }} block(s) at {{ r.orientation }}° · {{ r.floors }} floors.
+    <b style="color:#0A2536;">{{ r.typology }}</b> —
+    {{ r.n_buildings }} building(s) at {{ r.orientation }}° · {{ r.floors }} floors ·
+    {{ r.separation|round|int }} m apart · {{ r.efficiency }}% net efficiency.
+    Buildable envelope (dashed) = plot − {{ r.params.setback|round|int }} m setback.
     Indicative feasibility massing — ignores topography.
   </p>
 
@@ -43,6 +45,22 @@
         <tr><td>3-bed</td><td>110</td><td>{{ r.units['3-bed'] }}</td></tr>
       </tbody>
       <tfoot><tr><td>Total</td><td>—</td><td>{{ r.total_units }}</td></tr></tfoot>
+    </table>
+  </div>
+
+  <div class="section-label" style="margin-top:16px;"><small><b>Typologies compared</b></small></div>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Typology</th><th>Units</th><th>Saleable (m²)</th></tr></thead>
+      <tbody>
+        {% for a in r.alternatives %}
+        <tr{% if a.typology == r.typology %} style="font-weight:700;"{% endif %}>
+          <td>{{ a.typology }}{% if a.typology == r.typology %} ✓{% endif %}</td>
+          <td>{{ a.total_units }}</td>
+          <td>{{ "{:,}".format(a.nsa) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
   </div>
 </section>

@@ -167,11 +167,10 @@ async def site_massing(request: Request):
 
     params = MassingParams(
         setback=_num(form.get("setback"), 3),
-        depth=_num(form.get("depth"), 14),
-        gap=_num(form.get("gap"), 16),
         floors=int(_num(form.get("floors"), 8)),
+        floor_height=_num(form.get("floor_height"), 3),
+        gap=_num(form.get("gap"), 8),
         coverage_cap=_num(form.get("coverage_cap"), 50),
-        efficiency=_num(form.get("efficiency"), 82),
         veranda_pct=_num(form.get("veranda"), 25),
         mix={
             "1-bed": _num(form.get("mix_1"), 30),
