@@ -1,0 +1,48 @@
+<section class="card" id="site-results-card">
+  <div class="section-label"><h2>Proposed massing</h2></div>
+
+  <div class="site-diagram">{{ r.svg|safe }}</div>
+  <p class="sub" style="margin-top:8px;">
+    Buildable envelope (dashed) = plot − {{ r.params.setback|round|int }} m setback ·
+    {{ r.n_bars }} block(s) at {{ r.orientation }}° · {{ r.floors }} floors.
+    Indicative feasibility massing — ignores topography.
+  </p>
+
+  <div class="kpis" style="margin-top:14px;">
+    <div class="kpi k-noxen">
+      <div class="k-label">Total Units</div>
+      <div class="k-value">{{ r.total_units }}</div>
+      <div class="k-detail">
+        1-bed {{ r.units['1-bed'] }} · 2-bed {{ r.units['2-bed'] }} · 3-bed {{ r.units['3-bed'] }}</div>
+    </div>
+    <div class="kpi k-cymaris">
+      <div class="k-label">Internal NSA</div>
+      <div class="k-value">{{ "{:,}".format(r.internal) }} m²</div>
+      <div class="k-detail">+ veranda {{ "{:,}".format(r.veranda) }} m²
+        → {{ "{:,}".format(r.nsa) }} m² saleable</div>
+    </div>
+    <div class="kpi k-navaris">
+      <div class="k-label">GFA</div>
+      <div class="k-value">{{ "{:,}".format(r.gfa) }} m²</div>
+      <div class="k-detail">Footprint {{ "{:,}".format(r.footprint) }} m² × {{ r.floors }}</div>
+    </div>
+    <div class="kpi k-claria">
+      <div class="k-label">Coverage</div>
+      <div class="k-value">{{ r.coverage_pct }}%</div>
+      <div class="k-detail">Plot {{ "{:,}".format(r.plot_area) }} m²
+        · envelope {{ "{:,}".format(r.envelope_area) }} m²</div>
+    </div>
+  </div>
+
+  <div class="table-scroll" style="margin-top:6px;">
+    <table>
+      <thead><tr><th>Unit type</th><th>Internal (m²)</th><th>Units</th></tr></thead>
+      <tbody>
+        <tr><td>1-bed</td><td>50</td><td>{{ r.units['1-bed'] }}</td></tr>
+        <tr><td>2-bed</td><td>82</td><td>{{ r.units['2-bed'] }}</td></tr>
+        <tr><td>3-bed</td><td>110</td><td>{{ r.units['3-bed'] }}</td></tr>
+      </tbody>
+      <tfoot><tr><td>Total</td><td>—</td><td>{{ r.total_units }}</td></tr></tfoot>
+    </table>
+  </div>
+</section>

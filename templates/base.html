@@ -16,9 +16,13 @@
   <header class="appbar">
     <img src="/assets/logos/allora_logo_white.png" alt="Allora">
     <span class="titles">
-      <b>Density Analysis</b>
-      <span>LAND FEASIBILITY</span>
+      <b>{% block appbar_title %}Density Analysis{% endblock %}</b>
+      <span>{% block appbar_sub %}LAND FEASIBILITY{% endblock %}</span>
     </span>
+    <nav class="appnav">
+      <a href="/">Density</a>
+      <a href="/site">Site massing</a>
+    </nav>
   </header>
 
   {% block content %}{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Allora · Site Massing{% endblock %}
+{% block appbar_title %}Site Massing{% endblock %}
+{% block appbar_sub %}KML → BUILDING SHAPE{% endblock %}
+{% block content %}
+<main class="wrap">
+  <form id="site-form" hx-post="/site" hx-target="#site-results" hx-swap="innerHTML"
+        hx-encoding="multipart/form-data" hx-indicator="#site-btn">
+
+    <section class="card">
+      <div class="section-label"><h2>Plot</h2></div>
+      <p class="sub">Import a plot boundary (KML) to generate the optimal apartment
+        massing — buildable envelope, building bars, and unit capacity.</p>
+      <div class="field">
+        <label for="kml">Plot KML file</label>
+        <input type="file" id="kml" name="kml" accept=".kml" required>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-label"><h2>Massing parameters</h2></div>
+      <div class="grid cols-2">
+        <div class="field"><label>Setback (m, all sides)</label>
+          <input type="number" name="setback" value="3" min="0" step="0.5"></div>
+        <div class="field"><label>Coverage cap (%)</label>
+          <input type="number" name="coverage_cap" value="50" min="0" max="100"></div>
+        <div class="field"><label>Building depth (m)</label>
+          <input type="number" name="depth" value="14" min="6" step="0.5"></div>
+        <div class="field"><label>Gap between blocks (m)</label>
+          <input type="number" name="gap" value="16" min="0" step="0.5"></div>
+        <div class="field"><label>Floors</label>
+          <input type="number" name="floors" value="8" min="1"></div>
+        <div class="field"><label>Net efficiency (%)</label>
+          <input type="number" name="efficiency" value="82" min="1" max="100"></div>
+        <div class="field"><label>Covered veranda (%)</label>
+          <input type="number" name="veranda" value="25" min="0" max="100"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-label"><h2>Unit mix (%)</h2></div>
+      <p class="sub">Internal sizes — 1-bed {{ unit_sizes['1-bed']|int }} m² ·
+        2-bed {{ unit_sizes['2-bed']|int }} m² · 3-bed {{ unit_sizes['3-bed']|int }} m².</p>
+      <div class="grid cols-3">
+        <div class="field"><label>1-bed</label>
+          <input type="number" name="mix_1" value="30" min="0" max="100"></div>
+        <div class="field"><label>2-bed</label>
+          <input type="number" name="mix_2" value="45" min="0" max="100"></div>
+        <div class="field"><label>3-bed</label>
+          <input type="number" name="mix_3" value="25" min="0" max="100"></div>
+      </div>
+    </section>
+
+    <div class="actionbar">
+      <div class="inner">
+        <button type="submit" class="btn btn-primary" id="site-btn">
+          Generate massing <span class="htmx-indicator">…</span>
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <div id="site-results"></div>
+</main>
+{% endblock %}

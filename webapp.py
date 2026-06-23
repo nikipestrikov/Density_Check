@@ -23,6 +23,7 @@ from fastapi.templating import Jinja2Templates
 
 from Calculations import calculate_totals
 from reports import generate_pdf_report, generate_excel_report
+from massing import compute_massing, MassingParams, UNIT_SIZES
 
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / "templates"
@@ -146,6 +147,45 @@ async def report_pdf(request: Request):
         pdf, media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{fname}_density.pdf"'},
     )
+
+
+@app.get("/site")
+def site(request: Request):
+    return templates.TemplateResponse(request, "site.html",
+                                      {"unit_sizes": UNIT_SIZES})
+
+
+@app.post("/site")
+async def site_massing(request: Request):
+    form = await request.form()
+    upload = form.get("kml")
+    if upload is None or not getattr(upload, "filename", ""):
+        return templates.TemplateResponse(
+            request, "_site_error.html",
+            {"message": "Please choose a KML file to upload."})
+    data = await upload.read()
+
+    params = MassingParams(
+        setback=_num(form.get("setback"), 3),
+        depth=_num(form.get("depth"), 14),
+        gap=_num(form.get("gap"), 16),
+        floors=int(_num(form.get("floors"), 8)),
+        coverage_cap=_num(form.get("coverage_cap"), 50),
+        efficiency=_num(form.get("efficiency"), 82),
+        veranda_pct=_num(form.get("veranda"), 25),
+        mix={
+            "1-bed": _num(form.get("mix_1"), 30),
+            "2-bed": _num(form.get("mix_2"), 45),
+            "3-bed": _num(form.get("mix_3"), 25),
+        },
+    )
+    try:
+        result = compute_massing(data, params)
+    except ValueError as exc:
+        return templates.TemplateResponse(
+            request, "_site_error.html", {"message": str(exc)})
+    return templates.TemplateResponse(request, "_site_results.html",
+                                      {"r": result})
 
 
 @app.post("/report.xlsx")

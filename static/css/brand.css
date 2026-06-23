@@ -39,10 +39,15 @@ small{ color:var(--muted); }
   display:flex; align-items:center; gap:12px;
   border-bottom:2px solid var(--cymaris);
 }
-.appbar img{ height:26px; }
-.appbar .titles{ display:flex; flex-direction:column; line-height:1.1; }
-.appbar .titles b{ color:#fff; font-size:1.02rem; font-weight:600; }
-.appbar .titles span{ color:#9fc3c3; font-size:.72rem; letter-spacing:.04em; }
+.appbar{ flex-wrap:wrap; }
+.appbar img{ height:24px; }
+.appbar .titles{ display:flex; flex-direction:column; line-height:1.1; min-width:0; }
+.appbar .titles b{ color:#fff; font-size:1rem; font-weight:600; white-space:nowrap; }
+.appbar .titles span{ color:#9fc3c3; font-size:.7rem; letter-spacing:.04em; white-space:nowrap; }
+.appnav{ margin-left:auto; display:flex; gap:4px; }
+.appnav a{ color:#cfe3e3; text-decoration:none; font-size:.8rem; font-weight:600;
+  padding:6px 9px; border-radius:8px; white-space:nowrap; }
+.appnav a:hover{ background:rgba(255,255,255,.1); color:#fff; }
 
 /* ---- Layout --------------------------------------------------------- */
 .wrap{ max-width:var(--maxw); margin:0 auto; padding:18px 14px 120px; }
