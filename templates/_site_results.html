@@ -9,6 +9,8 @@
     <span><i style="background:{{ r.colors['3-bed'] }}"></i>3-bed (110 m²)</span>
     <span><i style="background:{{ r.colors['core'] }}"></i>Core</span>
     <span><i style="background:{{ r.colors['road'] }}"></i>Road access</span>
+    {% if 'POOL' in r.amenities %}<span><i style="background:{{ r.colors['pool'] }}"></i>Pool</span>{% endif %}
+    {% if 'AMENITY' in r.amenities %}<span><i style="background:{{ r.colors['amenity'] }}"></i>Amenity</span>{% endif %}
   </div>
   <p class="sub" style="margin-top:8px;">
     <b style="color:#0A2536;">{{ r.typology }}</b> —

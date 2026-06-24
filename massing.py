@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 
 from shapely import affinity
 from shapely.geometry import LineString, Polygon, box
+from shapely.ops import unary_union
 
 # Apartment unit catalogue (internal areas, m²)
 UNIT_SIZES = {"1-bed": 50.0, "2-bed": 82.0, "3-bed": 110.0}
@@ -28,6 +29,8 @@ UNIT_SIZES = {"1-bed": 50.0, "2-bed": 82.0, "3-bed": 110.0}
 UNIT_COLORS = {"1-bed": "#DAF6EF", "2-bed": "#5EA8A8", "3-bed": "#33566D"}
 CORE_COLOR = "#0A2536"
 ROAD_COLOR = "#9AA8B2"
+POOL_COLOR = "#6FB7D4"
+AMENITY_COLOR = "#8FA8B5"
 
 # Typology geometry (metres)
 TYPOLOGIES = {
@@ -161,7 +164,7 @@ def _pack_towers(env, side, sep, origin):
 # --------------------------------------------------------------------------- #
 # Rows of a floor plate (where units go), and the one-floor optimiser
 # --------------------------------------------------------------------------- #
-def _rows_for_frame(frame, kind, core_at_x1):
+def _rows_for_frame(frame, kind):
     """Return (core_boxes, rows, depth). row = (ax, ay, length, depth, horiz)."""
     x0, y0, x1, y1 = frame
     if kind == "tower":
@@ -179,20 +182,21 @@ def _rows_for_frame(frame, kind, core_at_x1):
             rows.append((x1 - ud, y0 + ud, mid, ud, False))  # right (vertical)
         return [core], rows, ud
 
-    # slab / gallery
+    # slab / gallery — central core, units fill the wings on both sides
     D = y1 - y0
-    if core_at_x1:
-        core = box(x1 - CORE_LEN, y0, x1, y1)
-        ux0, ulen = x0, (x1 - CORE_LEN) - x0
-    else:
-        core = box(x0, y0, x0 + CORE_LEN, y1)
-        ux0, ulen = x0 + CORE_LEN, x1 - (x0 + CORE_LEN)
+    cx = (x0 + x1) / 2
+    core = box(cx - CORE_LEN / 2, y0, cx + CORE_LEN / 2, y1)
+    segs = [(x0, (cx - CORE_LEN / 2) - x0),
+            (cx + CORE_LEN / 2, x1 - (cx + CORE_LEN / 2))]
     if kind == "slab":
         ud = (D - CORRIDOR) / 2
-        rows = [(ux0, y0, ulen, ud, True), (ux0, y1 - ud, ulen, ud, True)]
+        ybands = [y0, y1 - ud]
     else:  # gallery
         ud = max(D - CORRIDOR, 1.0)
-        rows = [(ux0, y0, ulen, ud, True)]
+        ybands = [y0]
+    min_seg = UNIT_SIZES["1-bed"] / ud
+    rows = [(sx0, ay, slen, ud, True)
+            for ay in ybands for sx0, slen in segs if slen >= min_seg]
     return [core], rows, ud
 
 
@@ -263,12 +267,7 @@ def _place(rows, depth, queue):
 # --------------------------------------------------------------------------- #
 # Evaluate one typology
 # --------------------------------------------------------------------------- #
-def _rot_vec(vx, vy, deg):
-    r = math.radians(deg)
-    return (vx * math.cos(r) - vy * math.sin(r), vx * math.sin(r) + vy * math.cos(r))
-
-
-def _evaluate(name, spec, env, p, sep, cap_area, origin, road_vec):
+def _evaluate(name, spec, env, p, sep, cap_area, origin):
     kind = spec["kind"]
     if kind == "tower":
         frames, angle = _pack_towers(env, spec["side"], sep, origin)
@@ -283,13 +282,10 @@ def _evaluate(name, spec, env, p, sep, cap_area, origin, road_vec):
             kept.append(f)
             footprint += a
 
-    rl = _rot_vec(road_vec[0], road_vec[1], -angle)
-    core_at_x1 = rl[0] > 0.01
-
     # collect rows + cores across all buildings; depth is typology-consistent
     cores, all_rows, depth = [], [], None
     for f in kept:
-        c, rows, depth = _rows_for_frame(f, kind, core_at_x1)
+        c, rows, depth = _rows_for_frame(f, kind)
         cores += c
         all_rows += rows
     if depth is None or not all_rows:
@@ -330,6 +326,44 @@ def _evaluate(name, spec, env, p, sep, cap_area, origin, road_vec):
     }
 
 
+def _place_amenity(region, w, h):
+    """Fit a w×h rectangle inside `region`, shrinking if needed; else None."""
+    if region.is_empty:
+        return None
+    for pt in (region.representative_point(), region.centroid):
+        for sc in (1.0, 0.8, 0.6, 0.45):
+            bw, bh = w * sc, h * sc
+            b = box(pt.x - bw / 2, pt.y - bh / 2, pt.x + bw / 2, pt.y + bh / 2)
+            if region.contains(b):
+                return b
+    return None
+
+
+def _amenities(envelope, frames):
+    """Sketch common infrastructure (pool, amenity) in large leftover space."""
+    if not frames:
+        return []
+    open_region = envelope.difference(unary_union(frames).buffer(4.0))
+    if open_region.is_empty:
+        return []
+    pieces = (list(open_region.geoms)
+              if open_region.geom_type == "MultiPolygon" else [open_region])
+    big = max(pieces, key=lambda g: g.area)
+    out = []
+    if big.area > 300:                       # "a lot of extra space"
+        pool = _place_amenity(big.buffer(-2.0), 16.0, 7.0)
+        if pool is not None:
+            out.append((pool, "POOL", POOL_COLOR))
+            rest = big.difference(pool.buffer(5.0))
+            if not rest.is_empty:
+                rp = (max(rest.geoms, key=lambda g: g.area)
+                      if rest.geom_type == "MultiPolygon" else rest)
+                club = _place_amenity(rp.buffer(-2.0), 11.0, 7.0) if rp.area > 120 else None
+                if club is not None:
+                    out.append((club, "AMENITY", AMENITY_COLOR))
+    return out
+
+
 def compute_massing(kml_bytes: bytes, p: MassingParams) -> dict:
     plot = plot_polygon_from_kml(kml_bytes)
     envelope = plot.buffer(-p.setback, join_style=2)
@@ -343,15 +377,11 @@ def compute_massing(kml_bytes: bytes, p: MassingParams) -> dict:
     sep = max(p.gap, 0.5 * p.floors * p.floor_height)
     cap_area = plot.area * (p.coverage_cap / 100.0)
 
-    road_vec = (0.0, 0.0)
-    for s in p.road_sides:
-        v = SIDE_VECTORS.get(s)
-        if v:
-            road_vec = (road_vec[0] + v[0], road_vec[1] + v[1])
-
-    options = [_evaluate(n, s, envelope, p, sep, cap_area, origin, road_vec)
+    options = [_evaluate(n, s, envelope, p, sep, cap_area, origin)
                for n, s in TYPOLOGIES.items()]
     best = max(options, key=lambda o: (o["total_units"], o["nsa"]))
+
+    amenities = _amenities(envelope, best["frames_global"])
 
     return {
         "plot_area": round(plot.area),
@@ -376,9 +406,11 @@ def compute_massing(kml_bytes: bytes, p: MassingParams) -> dict:
             {"typology": o["typology"], "total_units": o["total_units"],
              "nsa": round(o["nsa"])} for o in options],
         "road_sides": p.road_sides,
-        "colors": {**UNIT_COLORS, "core": CORE_COLOR, "road": ROAD_COLOR},
+        "amenities": [a[1] for a in amenities],
+        "colors": {**UNIT_COLORS, "core": CORE_COLOR, "road": ROAD_COLOR,
+                   "pool": POOL_COLOR, "amenity": AMENITY_COLOR},
         "svg": _build_svg(plot, envelope, best["cells_global"],
-                          best["frames_global"], p.road_sides),
+                          best["frames_global"], p.road_sides, amenities),
         "params": p,
     }
 
@@ -386,7 +418,7 @@ def compute_massing(kml_bytes: bytes, p: MassingParams) -> dict:
 # --------------------------------------------------------------------------- #
 # SVG site diagram
 # --------------------------------------------------------------------------- #
-def _build_svg(plot, envelope, cells, frames, road_sides) -> str:
+def _build_svg(plot, envelope, cells, frames, road_sides, amenities=()) -> str:
     minx, miny, maxx, maxy = plot.bounds
     road_w = 8.0
     roads = []
@@ -429,6 +461,18 @@ def _build_svg(plot, envelope, cells, frames, road_sides) -> str:
     parts.append(poly(plot, "#FFFFFF", "#0A2536", 2))
     for g in (envelope.geoms if envelope.geom_type == "MultiPolygon" else [envelope]):
         parts.append(poly(g, "#DAF6EF", "#5EA8A8", 1.2, dash="6 4", op=0.35))
+    # amenities (pool etc.) drawn in open space, rounded rectangles with labels
+    for b, label, color in amenities:
+        bb = b.bounds
+        rx0 = pad + (bb[0] - bx0) * scale
+        ry0 = H - pad - (bb[3] - by0) * scale
+        rw, rh = (bb[2] - bb[0]) * scale, (bb[3] - bb[1]) * scale
+        parts.append(f'<rect x="{rx0:.1f}" y="{ry0:.1f}" width="{rw:.1f}" '
+                     f'height="{rh:.1f}" rx="{min(rw, rh) * 0.3:.1f}" fill="{color}" '
+                     f'fill-opacity="0.9" stroke="#0A2536" stroke-width="1"/>')
+        parts.append(f'<text x="{rx0 + rw / 2:.1f}" y="{ry0 + rh / 2:.1f}" '
+                     f'font-family="sans-serif" font-size="10" font-weight="700" '
+                     f'fill="#fff" text-anchor="middle" dominant-baseline="middle">{label}</text>')
     for f in frames:
         parts.append(poly(f, "none", "#0A2536", 1.6))
     for g, t in cells:
