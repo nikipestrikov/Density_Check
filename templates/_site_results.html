@@ -2,6 +2,14 @@
   <div class="section-label"><h2>Proposed massing</h2></div>
 
   <div class="site-diagram">{{ r.svg|safe }}</div>
+
+  <div class="legend">
+    <span><i style="background:{{ r.colors['1-bed'] }}"></i>1-bed (50 m²)</span>
+    <span><i style="background:{{ r.colors['2-bed'] }}"></i>2-bed (82 m²)</span>
+    <span><i style="background:{{ r.colors['3-bed'] }}"></i>3-bed (110 m²)</span>
+    <span><i style="background:{{ r.colors['core'] }}"></i>Core</span>
+    <span><i style="background:{{ r.colors['road'] }}"></i>Road access</span>
+  </div>
   <p class="sub" style="margin-top:8px;">
     <b style="color:#0A2536;">{{ r.typology }}</b> —
     {{ r.n_buildings }} building(s) at {{ r.orientation }}° · {{ r.floors }} floors ·
@@ -9,6 +17,14 @@
     Buildable envelope (dashed) = plot − {{ r.params.setback|round|int }} m setback.
     Indicative feasibility massing — ignores topography.
   </p>
+
+  <div class="kpi k-cymaris" style="margin-top:14px;">
+    <div class="k-label">Recommended typical floor</div>
+    <div class="k-value">{{ r.floor_total }} units / floor</div>
+    <div class="k-detail">2-bed {{ r.floor_units['2-bed'] }}
+      · 1-bed {{ r.floor_units['1-bed'] }} · 3-bed {{ r.floor_units['3-bed'] }}
+      &nbsp;(parking assumed in basement)</div>
+  </div>
 
   <div class="kpis" style="margin-top:14px;">
     <div class="kpi k-noxen">

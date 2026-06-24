@@ -172,11 +172,9 @@ async def site_massing(request: Request):
         gap=_num(form.get("gap"), 8),
         coverage_cap=_num(form.get("coverage_cap"), 50),
         veranda_pct=_num(form.get("veranda"), 25),
-        mix={
-            "1-bed": _num(form.get("mix_1"), 30),
-            "2-bed": _num(form.get("mix_2"), 45),
-            "3-bed": _num(form.get("mix_3"), 25),
-        },
+        min_2bed_pct=_num(form.get("min_2bed"), 50),
+        max_1bed_pct=_num(form.get("max_1bed"), 30),
+        road_sides=[s for s in ("N", "E", "S", "W") if f"road_{s}" in form],
     )
     try:
         result = compute_massing(data, params)

@@ -35,19 +35,28 @@
         <div class="field"><label>Covered veranda (%)</label>
           <input type="number" name="veranda" value="25" min="0" max="100"></div>
       </div>
+      <div class="field" style="margin-top:4px;">
+        <label>Road access (which side)</label>
+        <div class="seg" style="background:var(--bg);">
+          <label><input type="checkbox" name="road_N"><span>North</span></label>
+          <label><input type="checkbox" name="road_E"><span>East</span></label>
+          <label><input type="checkbox" name="road_S"><span>South</span></label>
+          <label><input type="checkbox" name="road_W"><span>West</span></label>
+        </div>
+      </div>
     </section>
 
     <section class="card">
-      <div class="section-label"><h2>Unit mix (%)</h2></div>
-      <p class="sub">Internal sizes — 1-bed {{ unit_sizes['1-bed']|int }} m² ·
-        2-bed {{ unit_sizes['2-bed']|int }} m² · 3-bed {{ unit_sizes['3-bed']|int }} m².</p>
-      <div class="grid cols-3">
-        <div class="field"><label>1-bed</label>
-          <input type="number" name="mix_1" value="30" min="0" max="100"></div>
-        <div class="field"><label>2-bed</label>
-          <input type="number" name="mix_2" value="45" min="0" max="100"></div>
-        <div class="field"><label>3-bed</label>
-          <input type="number" name="mix_3" value="25" min="0" max="100"></div>
+      <div class="section-label"><h2>Unit mix rules</h2></div>
+      <p class="sub">The tool recommends the best one-floor combination
+        (internal sizes 1-bed {{ unit_sizes['1-bed']|int }} · 2-bed {{ unit_sizes['2-bed']|int }} ·
+        3-bed {{ unit_sizes['3-bed']|int }} m²), favouring 2-bed within these limits.
+        Parking is assumed in basement.</p>
+      <div class="grid cols-2">
+        <div class="field"><label>Min 2-bed (%)</label>
+          <input type="number" name="min_2bed" value="50" min="0" max="100"></div>
+        <div class="field"><label>Max 1-bed (%)</label>
+          <input type="number" name="max_1bed" value="30" min="0" max="100"></div>
       </div>
     </section>
 

@@ -160,6 +160,12 @@ tfoot td:first-child{ text-align:left; }
 }
 .actionbar .inner{ max-width:var(--maxw); margin:0 auto; }
 
+.legend{ display:flex; flex-wrap:wrap; gap:10px 16px; margin:10px 2px 0;
+  font-size:.8rem; color:var(--navaris); }
+.legend span{ display:inline-flex; align-items:center; gap:6px; }
+.legend i{ width:14px; height:14px; border-radius:3px; display:inline-block;
+  border:1px solid rgba(10,37,54,.15); }
+
 .htmx-indicator{ opacity:0; transition:opacity .15s; }
 .htmx-request .htmx-indicator{ opacity:1; }
 .htmx-request.btn-primary{ opacity:.7; }
