@@ -1,10 +1,11 @@
 /* Minimal service worker: cache the static shell, stay out of the way for
    everything dynamic (POST /calculate, report downloads, navigations). */
-const CACHE = "allora-density-v3";
+const CACHE = "allora-density-v4";
 const SHELL = [
   "/",
   "/static/css/brand.css",
   "/static/js/app.js",
+  "/static/js/site.js",
   "/static/js/htmx.min.js",
   "/static/manifest.webmanifest",
   "/static/icons/icon-192.png",

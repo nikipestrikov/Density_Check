@@ -1,138 +1,175 @@
 {% extends "base.html" %}
-{% block content %}
-<main class="wrap">
-  <form id="density-form" hx-post="/calculate" hx-target="#results"
-        hx-swap="innerHTML" hx-indicator="#calc-btn" data-price-mode="each">
+{% block body_class %}page-density{% endblock %}
 
-    <!-- Project settings -->
+{% block appbar_actions %}
+<div class="menu">
+  <button type="button" class="icon-btn" id="scenario-btn" aria-haspopup="true"
+          aria-expanded="false">Scenario ▾</button>
+  <div class="menu-pop" id="scenario-menu" hidden>
+    <button type="button" data-action="export">Save to file (.json)</button>
+    <button type="button" data-action="import">Open from file…</button>
+    <button type="button" data-action="reset" class="danger">Start over</button>
+  </div>
+  <input type="file" id="import-file" accept=".json,application/json" hidden>
+</div>
+{% endblock %}
+
+{% block content %}
+<main class="workspace">
+  <form id="density-form" class="inputs" autocomplete="off"
+        hx-post="/calculate" hx-target="#results" hx-swap="innerHTML"
+        hx-trigger="recalc, submit" hx-sync="this:replace">
+
     <section class="card">
-      <div class="section-label"><h2>Project</h2></div>
-      <div class="field">
-        <label for="project_name">Project name</label>
-        <input type="text" id="project_name" name="project_name"
-               value="My Real Estate Project" autocomplete="off">
+      <div class="card-head">
+        <input class="title-input" type="text" name="project_name"
+               value="New project" aria-label="Project name" placeholder="Project name">
+        <span class="saved" id="saved-state" aria-live="polite"></span>
       </div>
 
-      <div class="field">
-        <label>Specify price for</label>
-        <div class="seg" id="price-mode">
-          <label><input type="radio" name="price_mode" value="each" checked>
-            <span>Each plot</span></label>
-          <label><input type="radio" name="price_mode" value="total">
-            <span>Total project</span></label>
+      <div class="grid cols-2">
+        <div class="field">
+          <label>Price entered</label>
+          <div class="seg">
+            <label><input type="radio" name="price_mode" value="each" checked><span>Per plot</span></label>
+            <label><input type="radio" name="price_mode" value="total"><span>For the whole project</span></label>
+          </div>
+        </div>
+        <div class="field only-total" hidden>
+          <label for="total_price">Total project price</label>
+          <div class="affix"><span>€</span>
+            <input type="text" id="total_price" name="total_price" inputmode="numeric"
+                   data-money value="0"></div>
         </div>
       </div>
 
-      <div class="field only-total" hidden>
-        <label for="total_price">Total project price (€)</label>
-        <input type="text" id="total_price" name="total_price" inputmode="numeric"
-               value="100,000">
-      </div>
-
-      <label class="check">
-        <input type="checkbox" name="efficiency"> Apply 5% efficiency incentive
+      <label class="switch">
+        <input type="checkbox" name="efficiency">
+        <span class="track"></span>
+        <span>Apply 5% efficiency incentive <small>— adds 5% to total buildable area</small></span>
       </label>
     </section>
 
-    <!-- Plots -->
-    <section class="card">
-      <div class="section-label"><h2>Plots</h2></div>
-      <div id="plots"></div>
-      <button type="button" class="btn btn-ghost" id="add-plot">+ Add plot</button>
-    </section>
-
-    <!-- Calculate -->
-    <div class="actionbar">
-      <div class="inner">
-        <button type="submit" class="btn btn-primary" id="calc-btn">
-          Calculate <span class="htmx-indicator">…</span>
-        </button>
-      </div>
+    <div class="list-head">
+      <h2>Plots <span class="count" id="plot-count">1</span></h2>
+      <button type="button" class="btn btn-ghost btn-sm" id="add-plot">+ Add plot</button>
     </div>
+    <div id="plots"></div>
+    <button type="button" class="btn btn-dashed" id="add-plot-2">+ Add another plot</button>
   </form>
 
-  <div id="results"></div>
+  <aside class="results-pane" id="results-pane">
+    <div id="results" aria-live="polite">
+      <section class="card skeleton"><p class="muted">Calculating…</p></section>
+    </div>
+  </aside>
 </main>
+
+<!-- Mobile: always-visible headline numbers -->
+<a class="mbar" href="#results-pane" id="mbar">
+  <span><small>Buildable</small><b id="mbar-area">—</b></span>
+  <span><small>Price / m²</small><b id="mbar-price">—</b></span>
+  <span class="go">Results ↓</span>
+</a>
 
 <!-- ============ Templates cloned by app.js ============ -->
 <template id="plot-tpl">
   <details class="plot" open data-plot="__P__">
     <summary>
-      <span class="plot-title">Plot __N__</span>
-      <span style="display:flex;align-items:center;gap:12px;">
-        <button type="button" class="btn-link btn-sm" data-remove-plot>Remove</button>
-        <span class="chev">▾</span>
+      <span class="chev" aria-hidden="true">›</span>
+      <span class="plot-name" data-name>Plot</span>
+      <span class="plot-sum" id="sum-__P__"></span>
+      <span class="plot-actions">
+        <button type="button" class="icon-btn sm" data-dup-plot title="Duplicate plot">Duplicate</button>
+        <button type="button" class="icon-btn sm" data-remove-plot title="Remove plot">Remove</button>
       </span>
     </summary>
     <div class="body">
-      <div class="grid cols-2">
+      <div class="grid cols-3">
         <div class="field">
-          <label>Serial number</label>
-          <input type="text" name="p__P___serial" value="Plot-__N__">
+          <label>Plot name / registration no.</label>
+          <input type="text" name="p__P___serial" data-k="serial">
         </div>
         <div class="field">
-          <label>Plot size (m²)</label>
-          <input type="text" name="p__P___size" inputmode="numeric" value="1,000">
+          <label>Plot size</label>
+          <div class="affix right"><input type="text" name="p__P___size" inputmode="decimal"
+                 data-k="size" data-money><span>m²</span></div>
         </div>
-      </div>
-
-      <label class="check">
-        <input type="checkbox" name="p__P___parceled" data-toggle="#road-__P__" data-invert checked>
-        Plot is parceled
-      </label>
-      <div class="field" id="road-__P__" hidden>
-        <label>Road deduction (%)</label>
-        <input type="number" name="p__P___road" value="10" min="0" max="50" step="1">
-      </div>
-
-      <div class="grid cols-2">
-        <div class="field">
-          <label>Max height (m)</label>
-          <input type="number" name="p__P___maxh" value="15" min="0" step="0.5">
-        </div>
-        <div class="field">
-          <label>Floor height (m)</label>
-          <input type="number" name="p__P___floorh" value="3" min="0.5" step="0.5">
+        <div class="field only-each">
+          <label>Price</label>
+          <div class="affix"><span>€</span><input type="text" name="p__P___price"
+                 inputmode="numeric" data-k="price" data-money></div>
         </div>
       </div>
 
-      <div class="field only-each">
-        <label>Price for this plot (€)</label>
-        <input type="text" name="p__P___price" inputmode="numeric" value="0">
+      <div class="field">
+        <label>Land status</label>
+        <div class="seg">
+          <label><input type="radio" name="p__P___status" value="parceled" data-k="status"><span>Already parceled</span></label>
+          <label><input type="radio" name="p__P___status" value="division" data-k="status"><span>Needs division</span></label>
+        </div>
       </div>
 
-      <div class="section-label" style="margin-top:6px;"><small><b>Zones</b></small></div>
+      <div class="division" data-division hidden>
+        <div class="field">
+          <label>Road deduction <output data-road-out></output></label>
+          <div class="range-row">
+            <input type="range" min="0" max="40" step="1" data-road-range aria-label="Road deduction">
+            <div class="affix right mini"><input type="number" name="p__P___road" min="0" max="50"
+                 step="1" data-k="road"><span>%</span></div>
+          </div>
+        </div>
+        <p class="hint" id="green-__P__">Green area is deducted automatically by size bracket.</p>
+      </div>
+
+      <div class="grid cols-3">
+        <div class="field">
+          <label>Max height</label>
+          <div class="affix right"><input type="number" name="p__P___maxh" min="0" step="0.5"
+                 data-k="maxh"><span>m</span></div>
+        </div>
+        <div class="field">
+          <label>Floor height</label>
+          <div class="affix right"><input type="number" name="p__P___floorh" min="0.5" step="0.1"
+                 data-k="floorh"><span>m</span></div>
+        </div>
+        <div class="field">
+          <label>Floors allowed</label>
+          <div class="readout" id="floors-__P__">—</div>
+        </div>
+      </div>
+
+      <div class="zones-head">
+        <h3>Planning zones</h3>
+        <span class="share" data-share></span>
+      </div>
+      <div class="zone-cols" aria-hidden="true">
+        <span>Use</span><span>Share of plot</span><span>Density</span><span>Coverage</span><span></span>
+      </div>
       <div class="zones" data-zones></div>
-      <button type="button" class="btn btn-ghost btn-sm" data-add-zone>+ Add zone</button>
+      <button type="button" class="btn btn-link btn-sm" data-add-zone>+ Add zone</button>
     </div>
   </details>
 </template>
 
 <template id="zone-tpl">
   <div class="zone" data-zone="__Z__">
-    <div class="zh"><b>Zone __M__</b>
-      <button type="button" class="btn-link btn-sm" data-remove-zone>Remove</button></div>
-    <div class="grid cols-2">
-      <div class="field">
-        <label>Share of plot (%)</label>
-        <input type="number" name="p__P___z__Z___pct" value="100" min="0" max="100">
-      </div>
-      <div class="field">
-        <label>Coverage (%)</label>
-        <input type="number" name="p__P___z__Z___coverage" value="50" min="0" max="100">
-      </div>
-      <div class="field">
-        <label>Density (%)</label>
-        <input type="number" name="p__P___z__Z___density" value="50" min="0">
-      </div>
-      <div class="field">
-        <label>Type</label>
-        <select name="p__P___z__Z___type">
-          <option>Residential</option>
-          <option>Commercial</option>
-        </select>
-      </div>
-    </div>
+    <div class="zf"><label>Use</label>
+      <select name="p__P___z__Z___type" data-k="type">
+        <option>Residential</option><option>Commercial</option>
+      </select></div>
+    <div class="zf"><label>Share of plot</label>
+      <div class="affix right"><input type="number" name="p__P___z__Z___pct" min="0" max="100"
+           data-k="pct"><span>%</span></div></div>
+    <div class="zf"><label>Density</label>
+      <div class="affix right"><input type="number" name="p__P___z__Z___density" min="0"
+           data-k="density"><span>%</span></div></div>
+    <div class="zf"><label>Coverage</label>
+      <div class="affix right"><input type="number" name="p__P___z__Z___coverage" min="0" max="100"
+           data-k="coverage"><span>%</span></div></div>
+    <button type="button" class="x" data-remove-zone title="Remove zone" aria-label="Remove zone">×</button>
   </div>
 </template>
 {% endblock %}
+
+{% block scripts %}<script src="/static/js/app.js?v=4" defer></script>{% endblock %}

@@ -1,85 +1,107 @@
-<section class="card" id="results-card">
-  <div class="section-label"><h2>Results</h2></div>
-  <p class="sub">{{ project_name }}</p>
+{% macro n(v) %}{{ "{:,.0f}".format(v or 0) }}{% endmacro %}
+{% set scale = [gross, r.total_buildable_area, 1]|max %}
+{% macro bar(v, cls) %}<span class="bar {{ cls }}" style="width:{{ [100 * (v or 0) / scale, 0]|max }}%"></span>{% endmacro %}
 
-  <div class="kpis">
-    <div class="kpi k-noxen">
-      <div class="k-label">Total Buildable Area</div>
-      <div class="k-value">{{ "{:,}".format(r.total_buildable_area) }} m²</div>
-      <div class="k-detail">Residential {{ "{:,}".format(r.residential_buildable_area) }} m²
-        · Commercial {{ "{:,}".format(r.commercial_buildable_area) }} m²</div>
-    </div>
-    <div class="kpi k-cymaris">
-      <div class="k-label">Price / Buildable m²</div>
-      <div class="k-value">€{{ "{:,.0f}".format(price_per_m2) }}</div>
-    </div>
-    <div class="kpi k-navaris">
-      <div class="k-label">Total Deductions</div>
-      <div class="k-value">{{ "{:,}".format(deductions) }} m²</div>
-      <div class="k-detail">Road {{ "{:,}".format(r.total_road_deduction) }}
-        · Green {{ "{:,}".format(r.total_green_deduction) }}</div>
-    </div>
-    <div class="kpi k-claria">
-      <div class="k-label">Coverage Area</div>
-      <div class="k-value">{{ "{:,}".format(r.total_coverage_area) }} m²</div>
-      <div class="k-detail">Avg coverage {{ r.avg_coverage }}%
-        · Max floors {{ "{:,}".format(r.total_max_floors) }}</div>
-    </div>
-  </div>
+<section class="card result-hero">
+  <p class="eyebrow">{{ project_name }}</p>
+  <div class="hero-num">{{ n(r.total_buildable_area) }}<span> m²</span></div>
+  <p class="hero-label">Total buildable area</p>
 
-  <div class="table-scroll">
-    <table>
-      <thead>
-        <tr><th>Plot</th><th>Size (m²)</th><th>Road (m²)</th>
-            <th>Green (m²)</th><th>Net (m²)</th></tr>
-      </thead>
-      <tbody>
-        {% set ns = namespace(ps=0, rd=0, gr=0, net=0) %}
-        {% for p in r.plots %}
-          {% set ns.ps = ns.ps + p.plot_size|round|int %}
-          {% set ns.rd = ns.rd + p.road_deduction|round|int %}
-          {% set ns.gr = ns.gr + p.green_deduction|round|int %}
-          {% set ns.net = ns.net + p.net_plot_size|round|int %}
-          <tr>
-            <td>{{ p.serial_number }}</td>
-            <td>{{ "{:,}".format(p.plot_size|round|int) }}</td>
-            <td>{{ "{:,}".format(p.road_deduction|round|int) }}</td>
-            <td>{{ "{:,}".format(p.green_deduction|round|int) }}</td>
-            <td>{{ "{:,}".format(p.net_plot_size|round|int) }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-      <tfoot>
-        <tr><td>Total</td>
-          <td>{{ "{:,}".format(ns.ps) }}</td>
-          <td>{{ "{:,}".format(ns.rd) }}</td>
-          <td>{{ "{:,}".format(ns.gr) }}</td>
-          <td>{{ "{:,}".format(ns.net) }}</td></tr>
-      </tfoot>
-    </table>
-  </div>
-
-  <div class="breakdown">
-    {% for p in r.plots %}
-    <details>
-      <summary>{{ p.serial_number }} — net {{ "{:,}".format(p.net_plot_size|round|int) }} m²</summary>
-      <div class="bd">
-        {% for z in p.zones %}
-        <div class="row"><span>Zone {{ loop.index }} · {{ z.density_type }}
-          ({{ z.percentage|round|int }}% · cov {{ z.coverage_factor|round|int }}% · den {{ z.density_factor|round|int }}%)</span>
-          <b>{{ "{:,}".format(p.zone_buildable_areas[loop.index0]) }} m²</b></div>
-        {% endfor %}
-        <div class="row"><span>Coverage area</span>
-          <b>{{ "{:,}".format(p.coverage_area|round|int) }} m²</b></div>
-        <div class="row"><span>Max floors</span><b>{{ p.max_floors }}</b></div>
-      </div>
-    </details>
-    {% endfor %}
-  </div>
-
-  <!-- Report downloads: JS fetch+blob (bypasses the form's hx-post) -->
-  <div class="btn-row" style="margin-top:14px;">
-    <button class="btn btn-ghost" type="button" data-download="/report.pdf">⬇ PDF report</button>
-    <button class="btn btn-ghost" type="button" data-download="/report.xlsx">⬇ Excel</button>
+  <div class="hero-split">
+    <div><small>Price / buildable m²</small>
+      <b>{% if price_per_m2 %}€{{ n(price_per_m2) }}{% else %}—{% endif %}</b></div>
+    <div><small>Total price</small>
+      <b>{% if total_price %}€{{ n(total_price) }}{% else %}—{% endif %}</b></div>
   </div>
 </section>
+
+{% if warnings %}
+<section class="card notes">
+  <h3>Check these</h3>
+  <ul>{% for w in warnings %}<li>{{ w }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+<section class="card">
+  <h3>From land to buildable area</h3>
+  <div class="flow">
+    <div class="flow-row"><span>Gross land</span>{{ bar(gross, "b-gross") }}<b>{{ n(gross) }} m²</b></div>
+    <div class="flow-row minus"><span>− Road</span>{{ bar(r.total_road_deduction, "b-road") }}<b>{{ n(r.total_road_deduction) }} m²</b></div>
+    <div class="flow-row minus"><span>− Green</span>{{ bar(r.total_green_deduction, "b-green") }}<b>{{ n(r.total_green_deduction) }} m²</b></div>
+    <div class="flow-row"><span>Net land</span>{{ bar(r.total_net_area, "b-net") }}<b>{{ n(r.total_net_area) }} m²</b></div>
+    <div class="flow-row total"><span>Buildable</span>
+      <span class="bar-stack" style="width:{{ 100 * r.total_buildable_area / scale }}%">
+        {% if r.total_buildable_area %}
+        <i class="b-res" style="flex:{{ r.residential_buildable_area }}"></i>
+        <i class="b-com" style="flex:{{ r.commercial_buildable_area }}"></i>
+        <i class="b-inc" style="flex:{{ r.incentive_area }}"></i>
+        {% endif %}
+      </span><b>{{ n(r.total_buildable_area) }} m²</b></div>
+  </div>
+  <div class="legend">
+    <span><i class="b-res"></i>Residential {{ n(r.residential_buildable_area) }} m²
+      {% if r.residential_avg_density %}<small>(avg {{ r.residential_avg_density }}%)</small>{% endif %}</span>
+    <span><i class="b-com"></i>Commercial {{ n(r.commercial_buildable_area) }} m²
+      {% if r.commercial_avg_density %}<small>(avg {{ r.commercial_avg_density }}%)</small>{% endif %}</span>
+    {% if r.incentive_area %}<span><i class="b-inc"></i>Incentive {{ n(r.incentive_area) }} m²</span>{% endif %}
+  </div>
+</section>
+
+<section class="card">
+  <h3>Footprint &amp; height</h3>
+  <div class="stats">
+    <div><small>Coverage area</small><b>{{ n(r.total_coverage_area) }} m²</b><span>avg {{ r.avg_coverage }}%</span></div>
+    <div><small>Max floors</small><b>{{ r.highest_floors or "—" }}</b><span>tallest plot</span></div>
+    <div><small>Height capacity</small><b>{{ n(r.total_height_capacity) }} m²</b><span>coverage × floors</span></div>
+  </div>
+</section>
+
+<section class="card">
+  <h3>By plot</h3>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Plot</th><th>Gross</th><th>Net</th><th>Buildable</th></tr></thead>
+      <tbody>
+      {% for p in r.plots %}
+        <tr><td>{{ p.serial_number }}
+            {% if not p.is_parceled %}<small class="sub">−{{ n(p.road_deduction) }} road · −{{ n(p.green_deduction) }} green ({{ p.green_percent }}%)</small>{% endif %}</td>
+          <td>{{ n(p.plot_size) }}</td><td>{{ n(p.net_plot_size) }}</td><td><b>{{ n(p.buildable_area) }}</b></td></tr>
+      {% endfor %}
+      </tbody>
+      {% if r.plots|length > 1 %}
+      <tfoot><tr><td>Total</td><td>{{ n(gross) }}</td><td>{{ n(r.total_net_area) }}</td>
+        <td>{{ n(r.total_buildable_area - r.incentive_area) }}</td></tr></tfoot>
+      {% endif %}
+    </table>
+  </div>
+  <p class="hint">All areas in m².{% if r.incentive_area %} Plot totals exclude the 5% incentive.{% endif %}</p>
+</section>
+
+<section class="card">
+  <div class="btn-row">
+    <button class="btn btn-primary" type="button" data-download="/report.pdf">Download PDF report</button>
+    <button class="btn btn-ghost" type="button" data-download="/report.xlsx">Excel</button>
+  </div>
+</section>
+
+<details class="card how">
+  <summary>How this is calculated</summary>
+  <ol>
+    <li><b>Road</b> is deducted from the gross plot area (plots that need division only).</li>
+    <li><b>Green area</b> is deducted from what remains, by size bracket:
+      <table class="mini-table">{% for label, pct in green_brackets %}
+        <tr><td>{{ label }}</td><td>{{ pct }}%</td></tr>{% endfor %}</table></li>
+    <li><b>Buildable area</b> = net land × zone share × density, summed per zone.</li>
+    <li><b>Coverage</b> = net land × zone share × coverage. Height capacity = coverage × floors (max height ÷ floor height).</li>
+    <li>The <b>efficiency incentive</b> adds 5% to the total buildable area.</li>
+  </ol>
+</details>
+
+{# ---- Out-of-band updates for the form side and the mobile bar ---- #}
+{% for p in r.plots %}
+<span class="plot-sum" id="sum-{{ p.key }}" hx-swap-oob="true">{% if p.plot_size %}{{ n(p.net_plot_size) }} m² net · <b>{{ n(p.buildable_area) }} m² buildable</b>{% endif %}</span>
+<div class="readout" id="floors-{{ p.key }}" hx-swap-oob="true">{% if p.max_floors %}{{ p.max_floors }} floor{{ "s" if p.max_floors != 1 }}{% else %}—{% endif %}</div>
+<p class="hint" id="green-{{ p.key }}" hx-swap-oob="true">{% if not p.is_parceled and p.plot_size %}After {{ n(p.road_deduction) }} m² road, {{ n(p.plot_size - p.road_deduction) }} m² remains → green deduction {{ p.green_percent }}% ({{ n(p.green_deduction) }} m²).{% else %}Green area is deducted automatically by size bracket.{% endif %}</p>
+{% endfor %}
+<b id="mbar-area" hx-swap-oob="true">{{ n(r.total_buildable_area) }} m²</b>
+<b id="mbar-price" hx-swap-oob="true">{% if price_per_m2 %}€{{ n(price_per_m2) }}{% else %}—{% endif %}</b>

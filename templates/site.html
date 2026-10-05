@@ -1,74 +1,76 @@
 {% extends "base.html" %}
 {% block title %}Allora · Site Massing{% endblock %}
-{% block appbar_title %}Site Massing{% endblock %}
-{% block appbar_sub %}KML → BUILDING SHAPE{% endblock %}
+{% block body_class %}page-site{% endblock %}
 {% block content %}
-<main class="wrap">
-  <form id="site-form" hx-post="/site" hx-target="#site-results" hx-swap="innerHTML"
-        hx-encoding="multipart/form-data" hx-indicator="#site-btn">
+<main class="workspace">
+  <form id="site-form" class="inputs" hx-post="/site" hx-target="#site-results"
+        hx-swap="innerHTML" hx-encoding="multipart/form-data"
+        hx-trigger="recalc" hx-sync="this:replace">
 
     <section class="card">
-      <div class="section-label"><h2>Plot</h2></div>
-      <p class="sub">Import a plot boundary (KML) to generate the optimal apartment
-        massing — buildable envelope, building bars, and unit capacity.</p>
-      <div class="field">
-        <label for="kml">Plot KML file</label>
-        <input type="file" id="kml" name="kml" accept=".kml" required>
-      </div>
+      <h3>Plot boundary</h3>
+      <label class="drop" id="drop">
+        <input type="file" id="kml" name="kml" accept=".kml,application/vnd.google-earth.kml+xml">
+        <b id="drop-title">Drop a KML file here</b>
+        <span id="drop-sub">or click to choose · export from Google Earth or the DLS portal</span>
+      </label>
     </section>
 
     <section class="card">
-      <div class="section-label"><h2>Massing parameters</h2></div>
-      <p class="sub">The tool picks the best building typology for the plot
-        (slab / gallery / towers) and orientation automatically.</p>
-      <div class="grid cols-2">
-        <div class="field"><label>Setback (m, all sides)</label>
-          <input type="number" name="setback" value="3" min="0" step="0.5"></div>
-        <div class="field"><label>Coverage cap (%)</label>
-          <input type="number" name="coverage_cap" value="50" min="0" max="100"></div>
+      <h3>Building envelope</h3>
+      <div class="grid cols-3">
+        <div class="field"><label>Setback (all sides)</label>
+          <div class="affix right"><input type="number" name="setback" value="3" min="0" step="0.5"><span>m</span></div></div>
+        <div class="field"><label>Coverage cap</label>
+          <div class="affix right"><input type="number" name="coverage_cap" value="50" min="0" max="100"><span>%</span></div></div>
         <div class="field"><label>Floors</label>
-          <input type="number" name="floors" value="8" min="1"></div>
-        <div class="field"><label>Floor height (m)</label>
-          <input type="number" name="floor_height" value="3" min="2" step="0.1"></div>
-        <div class="field"><label>Min gap between blocks (m)</label>
-          <input type="number" name="gap" value="8" min="0" step="0.5"></div>
-        <div class="field"><label>Covered veranda (%)</label>
-          <input type="number" name="veranda" value="25" min="0" max="100"></div>
+          <div class="affix right"><input type="number" name="floors" value="8" min="1"><span>fl</span></div></div>
+        <div class="field"><label>Floor height</label>
+          <div class="affix right"><input type="number" name="floor_height" value="3" min="2" step="0.1"><span>m</span></div></div>
+        <div class="field"><label>Min gap between blocks</label>
+          <div class="affix right"><input type="number" name="gap" value="8" min="0" step="0.5"><span>m</span></div></div>
+        <div class="field"><label>Covered veranda</label>
+          <div class="affix right"><input type="number" name="veranda" value="25" min="0" max="100"><span>%</span></div></div>
       </div>
-      <div class="field" style="margin-top:4px;">
-        <label>Road access (which side)</label>
-        <div class="seg" style="background:var(--bg);">
-          <label><input type="checkbox" name="road_N"><span>North</span></label>
-          <label><input type="checkbox" name="road_E"><span>East</span></label>
-          <label><input type="checkbox" name="road_S"><span>South</span></label>
-          <label><input type="checkbox" name="road_W"><span>West</span></label>
+      <p class="hint">The best typology (slab, gallery or towers) and orientation are chosen automatically.</p>
+    </section>
+
+    <section class="card">
+      <div class="grid cols-2">
+        <div class="field">
+          <h3>Road access</h3>
+          <div class="compass" role="group" aria-label="Road access side">
+            <label class="n"><input type="checkbox" name="road_N"><span>N</span></label>
+            <label class="w"><input type="checkbox" name="road_W"><span>W</span></label>
+            <span class="plot-ico" aria-hidden="true"></span>
+            <label class="e"><input type="checkbox" name="road_E"><span>E</span></label>
+            <label class="s"><input type="checkbox" name="road_S"><span>S</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <h3>Unit mix</h3>
+          <div class="grid cols-2">
+            <div class="field"><label>Min 2-bed</label>
+              <div class="affix right"><input type="number" name="min_2bed" value="50" min="0" max="100"><span>%</span></div></div>
+            <div class="field"><label>Max 1-bed</label>
+              <div class="affix right"><input type="number" name="max_1bed" value="30" min="0" max="100"><span>%</span></div></div>
+          </div>
+          <p class="hint">Unit sizes: 1-bed {{ unit_sizes['1-bed']|int }} · 2-bed {{ unit_sizes['2-bed']|int }} ·
+            3-bed {{ unit_sizes['3-bed']|int }} m². Parking assumed in basement.</p>
         </div>
       </div>
     </section>
-
-    <section class="card">
-      <div class="section-label"><h2>Unit mix rules</h2></div>
-      <p class="sub">The tool recommends the best one-floor combination
-        (internal sizes 1-bed {{ unit_sizes['1-bed']|int }} · 2-bed {{ unit_sizes['2-bed']|int }} ·
-        3-bed {{ unit_sizes['3-bed']|int }} m²), favouring 2-bed within these limits.
-        Parking is assumed in basement.</p>
-      <div class="grid cols-2">
-        <div class="field"><label>Min 2-bed (%)</label>
-          <input type="number" name="min_2bed" value="50" min="0" max="100"></div>
-        <div class="field"><label>Max 1-bed (%)</label>
-          <input type="number" name="max_1bed" value="30" min="0" max="100"></div>
-      </div>
-    </section>
-
-    <div class="actionbar">
-      <div class="inner">
-        <button type="submit" class="btn btn-primary" id="site-btn">
-          Generate massing <span class="htmx-indicator">…</span>
-        </button>
-      </div>
-    </div>
   </form>
 
-  <div id="site-results"></div>
+  <aside class="results-pane">
+    <div id="site-results" aria-live="polite">
+      <section class="card empty">
+        <b>No plot loaded yet</b>
+        Add a KML boundary and the massing appears here. It updates as you change the parameters.
+      </section>
+    </div>
+  </aside>
 </main>
 {% endblock %}
+
+{% block scripts %}<script src="/static/js/site.js?v=4" defer></script>{% endblock %}

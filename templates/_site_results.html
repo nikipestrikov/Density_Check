@@ -1,84 +1,67 @@
-<section class="card" id="site-results-card">
-  <div class="section-label"><h2>Proposed massing</h2></div>
+{% macro n(v) %}{{ "{:,.0f}".format(v or 0) }}{% endmacro %}
+<section class="card result-hero">
+  <p class="eyebrow">{{ r.typology }} · {{ r.n_buildings }} building{{ "s" if r.n_buildings != 1 }} · {{ r.floors }} floors</p>
+  <div class="hero-num">{{ r.total_units }}<span> units</span></div>
+  <p class="hero-label">{{ r.floor_total }} per typical floor — 2-bed {{ r.floor_units['2-bed'] }} ·
+    1-bed {{ r.floor_units['1-bed'] }} · 3-bed {{ r.floor_units['3-bed'] }}</p>
+  <div class="hero-split">
+    <div><small>Saleable area</small><b>{{ n(r.nsa) }} m²</b></div>
+    <div><small>GFA</small><b>{{ n(r.gfa) }} m²</b></div>
+  </div>
+</section>
 
+<section class="card">
   <div class="site-diagram">{{ r.svg|safe }}</div>
-
   <div class="legend">
-    <span><i style="background:{{ r.colors['1-bed'] }}"></i>1-bed (50 m²)</span>
-    <span><i style="background:{{ r.colors['2-bed'] }}"></i>2-bed (82 m²)</span>
-    <span><i style="background:{{ r.colors['3-bed'] }}"></i>3-bed (110 m²)</span>
+    <span><i style="background:{{ r.colors['1-bed'] }};outline:1px solid #cfdbe2"></i>1-bed</span>
+    <span><i style="background:{{ r.colors['2-bed'] }}"></i>2-bed</span>
+    <span><i style="background:{{ r.colors['3-bed'] }}"></i>3-bed</span>
     <span><i style="background:{{ r.colors['core'] }}"></i>Core</span>
-    <span><i style="background:{{ r.colors['road'] }}"></i>Road access</span>
+    {% if r.road_sides %}<span><i style="background:{{ r.colors['road'] }}"></i>Road</span>{% endif %}
     {% if 'POOL' in r.amenities %}<span><i style="background:{{ r.colors['pool'] }}"></i>Pool</span>{% endif %}
     {% if 'AMENITY' in r.amenities %}<span><i style="background:{{ r.colors['amenity'] }}"></i>Amenity</span>{% endif %}
   </div>
-  <p class="sub" style="margin-top:8px;">
-    <b style="color:#0A2536;">{{ r.typology }}</b> —
-    {{ r.n_buildings }} building(s) at {{ r.orientation }}° · {{ r.floors }} floors ·
-    {{ r.separation|round|int }} m apart · {{ r.efficiency }}% net efficiency.
-    Buildable envelope (dashed) = plot − {{ r.params.setback|round|int }} m setback.
-    Indicative feasibility massing — ignores topography.
-  </p>
+  <p class="hint">Dashed line = buildable envelope (plot − {{ r.params.setback|round(1) }} m setback).
+    Indicative feasibility massing; ignores topography.</p>
+</section>
 
-  <div class="kpi k-cymaris" style="margin-top:14px;">
-    <div class="k-label">Recommended typical floor</div>
-    <div class="k-value">{{ r.floor_total }} units / floor</div>
-    <div class="k-detail">2-bed {{ r.floor_units['2-bed'] }}
-      · 1-bed {{ r.floor_units['1-bed'] }} · 3-bed {{ r.floor_units['3-bed'] }}
-      &nbsp;(parking assumed in basement)</div>
+<section class="card">
+  <h3>Key figures</h3>
+  <div class="stats">
+    <div><small>Coverage</small><b>{{ r.coverage_pct }}%</b><span>{{ n(r.footprint) }} m² footprint</span></div>
+    <div><small>Net efficiency</small><b>{{ r.efficiency }}%</b><span>internal ÷ GFA</span></div>
+    <div><small>Block spacing</small><b>{{ r.separation|round|int }} m</b><span>at {{ r.orientation }}°</span></div>
   </div>
+  <div style="margin-top:12px">
+    <div class="kv"><span>Plot area</span><b>{{ n(r.plot_area) }} m²</b></div>
+    <div class="kv"><span>Buildable envelope</span><b>{{ n(r.envelope_area) }} m²</b></div>
+    <div class="kv"><span>Internal area</span><b>{{ n(r.internal) }} m²</b></div>
+    <div class="kv"><span>Covered verandas</span><b>{{ n(r.veranda) }} m²</b></div>
+  </div>
+</section>
 
-  <div class="kpis" style="margin-top:14px;">
-    <div class="kpi k-noxen">
-      <div class="k-label">Total Units</div>
-      <div class="k-value">{{ r.total_units }}</div>
-      <div class="k-detail">
-        1-bed {{ r.units['1-bed'] }} · 2-bed {{ r.units['2-bed'] }} · 3-bed {{ r.units['3-bed'] }}</div>
-    </div>
-    <div class="kpi k-cymaris">
-      <div class="k-label">Internal NSA</div>
-      <div class="k-value">{{ "{:,}".format(r.internal) }} m²</div>
-      <div class="k-detail">+ veranda {{ "{:,}".format(r.veranda) }} m²
-        → {{ "{:,}".format(r.nsa) }} m² saleable</div>
-    </div>
-    <div class="kpi k-navaris">
-      <div class="k-label">GFA</div>
-      <div class="k-value">{{ "{:,}".format(r.gfa) }} m²</div>
-      <div class="k-detail">Footprint {{ "{:,}".format(r.footprint) }} m² × {{ r.floors }}</div>
-    </div>
-    <div class="kpi k-claria">
-      <div class="k-label">Coverage</div>
-      <div class="k-value">{{ r.coverage_pct }}%</div>
-      <div class="k-detail">Plot {{ "{:,}".format(r.plot_area) }} m²
-        · envelope {{ "{:,}".format(r.envelope_area) }} m²</div>
-    </div>
-  </div>
+<section class="card">
+  <h3>Unit schedule</h3>
+  <table>
+    <thead><tr><th>Type</th><th>Size</th><th>Per floor</th><th>Total</th></tr></thead>
+    <tbody>
+      {% for t in ['1-bed', '2-bed', '3-bed'] %}
+      <tr><td>{{ t }}</td><td>{{ unit_sizes[t]|int }} m²</td><td>{{ r.floor_units[t] }}</td><td>{{ r.units[t] }}</td></tr>
+      {% endfor %}
+    </tbody>
+    <tfoot><tr><td>Total</td><td></td><td>{{ r.floor_total }}</td><td>{{ r.total_units }}</td></tr></tfoot>
+  </table>
+</section>
 
-  <div class="table-scroll" style="margin-top:6px;">
-    <table>
-      <thead><tr><th>Unit type</th><th>Internal (m²)</th><th>Units</th></tr></thead>
-      <tbody>
-        <tr><td>1-bed</td><td>50</td><td>{{ r.units['1-bed'] }}</td></tr>
-        <tr><td>2-bed</td><td>82</td><td>{{ r.units['2-bed'] }}</td></tr>
-        <tr><td>3-bed</td><td>110</td><td>{{ r.units['3-bed'] }}</td></tr>
-      </tbody>
-      <tfoot><tr><td>Total</td><td>—</td><td>{{ r.total_units }}</td></tr></tfoot>
-    </table>
-  </div>
-
-  <div class="section-label" style="margin-top:16px;"><small><b>Typologies compared</b></small></div>
-  <div class="table-scroll">
-    <table>
-      <thead><tr><th>Typology</th><th>Units</th><th>Saleable (m²)</th></tr></thead>
-      <tbody>
-        {% for a in r.alternatives %}
-        <tr{% if a.typology == r.typology %} style="font-weight:700;"{% endif %}>
-          <td>{{ a.typology }}{% if a.typology == r.typology %} ✓{% endif %}</td>
-          <td>{{ a.total_units }}</td>
-          <td>{{ "{:,}".format(a.nsa) }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+<section class="card">
+  <h3>Typologies compared</h3>
+  <table>
+    <thead><tr><th>Typology</th><th>Units</th><th>Saleable</th></tr></thead>
+    <tbody>
+      {% for a in r.alternatives %}
+      <tr><td>{{ a.typology }}{% if a.typology == r.typology %} <small>✓ chosen</small>{% endif %}</td>
+        <td>{{ a.total_units }}</td><td>{{ n(a.nsa) }} m²</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </section>

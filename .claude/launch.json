@@ -2,10 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "density",
-      "runtimeExecutable": "./.venv/bin/streamlit",
-      "runtimeArgs": ["run", "density_calculator.py", "--server.headless", "true", "--server.port", "8765"],
-      "port": 8765
+      "name": "density-check",
+      "runtimeExecutable": "./.venv/bin/uvicorn",
+      "runtimeArgs": ["webapp:app", "--reload", "--port", "8770"],
+      "port": 8770
     }
   ]
 }

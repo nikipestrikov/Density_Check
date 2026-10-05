@@ -59,9 +59,10 @@ def _parse_form(form) -> tuple[list[dict], float, bool, str]:
 
     plots: list[dict] = []
     total_each = 0.0
-    for p in plot_indices:
+    for pos, p in enumerate(plot_indices, start=1):
         g = lambda name, d="": form.get(f"p{p}_{name}", d)
-        parceled = f"p{p}_parceled" in form
+        parceled = (form.get(f"p{p}_status") == "parceled"
+                    or f"p{p}_parceled" in form)
 
         zone_indices = sorted({
             int(m.group(1))
@@ -82,7 +83,8 @@ def _parse_form(form) -> tuple[list[dict], float, bool, str]:
                       "coverage_factor": 0, "density_type": "Residential"}]
 
         plots.append({
-            "serial_number": g("serial") or f"Plot-{p + 1}",
+            "key": p,
+            "serial_number": g("serial").strip() or f"Plot {pos}",
             "plot_size": _num(g("size")),
             "is_parceled": parceled,
             "road_deduction_percent": 0 if parceled else _num(g("road")),
@@ -107,6 +109,26 @@ def _compute(form):
     return results, total_price, price_per_m2, project_name
 
 
+def _warnings(results) -> list[str]:
+    """Plain-language checks shown above the results."""
+    out = []
+    for p in results["plots"]:
+        name = p["serial_number"]
+        if p["plot_size"] <= 0:
+            out.append(f"{name}: enter a plot size.")
+            continue
+        share = sum(z["percentage"] for z in p["zones"])
+        if abs(share - 100) > 0.01:
+            out.append(f"{name}: zone shares add up to {share:g}% (should be 100%).")
+        if p["max_floors"] and p["coverage_area"] and \
+                p["buildable_area"] > p["max_buildable_area"] + 0.5:
+            out.append(
+                f"{name}: height-limited. Density allows {p['buildable_area']:,.0f} m², "
+                f"but {p['max_floors']} floors × {p['coverage_area']:,.0f} m² coverage "
+                f"fits only {p['max_buildable_area']:,.0f} m².")
+    return out
+
+
 # --------------------------------------------------------------------------- #
 # Routes
 # --------------------------------------------------------------------------- #
@@ -115,9 +137,15 @@ def health():
     return {"status": "ok"}
 
 
+GREEN_BRACKETS = [("< 800 m²", 0), ("800 – 1,500 m²", 5), ("1,500 – 2,500 m²", 10),
+                  ("2,500 – 10,000 m²", 15), ("10,000 – 50,000 m²", 17),
+                  ("≥ 50,000 m²", 18)]
+
+
 @app.get("/")
 def index(request: Request):
-    return templates.TemplateResponse(request, "index.html")
+    return templates.TemplateResponse(request, "index.html",
+                                      {"green_brackets": GREEN_BRACKETS})
 
 
 @app.post("/calculate")
@@ -130,6 +158,9 @@ async def calculate(request: Request):
         "price_per_m2": price_per_m2,
         "project_name": project_name,
         "deductions": results["total_road_deduction"] + results["total_green_deduction"],
+        "gross": sum(p["plot_size"] for p in results["plots"]),
+        "warnings": _warnings(results),
+        "green_brackets": GREEN_BRACKETS,
     }
     # HTMX swaps in the bare partial; a native submit (HTMX unavailable / no-JS)
     # gets a full, fully-styled page instead of an unstyled fragment.
@@ -182,7 +213,7 @@ async def site_massing(request: Request):
         return templates.TemplateResponse(
             request, "_site_error.html", {"message": str(exc)})
     return templates.TemplateResponse(request, "_site_results.html",
-                                      {"r": result})
+                                      {"r": result, "unit_sizes": UNIT_SIZES})
 
 
 @app.post("/report.xlsx")
