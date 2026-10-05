@@ -18,11 +18,6 @@
       <img src="/assets/logos/allora_logo_white.png" alt="Allora">
       <span class="brand-sub">Land feasibility</span>
     </a>
-    <nav class="tabs" aria-label="Tools">
-      {% set page = self.body_class() %}
-      <a href="/" {% if page == "page-density" %}aria-current="page"{% endif %}>Density</a>
-      <a href="/site" {% if page == "page-site" %}aria-current="page"{% endif %}>Site massing</a>
-    </nav>
     <div class="appbar-actions">{% block appbar_actions %}{% endblock %}</div>
   </header>
 

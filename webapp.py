@@ -23,7 +23,6 @@ from fastapi.templating import Jinja2Templates
 
 from Calculations import calculate_totals
 from reports import generate_pdf_report, generate_excel_report
-from massing import compute_massing, MassingParams, UNIT_SIZES
 
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / "templates"
@@ -178,42 +177,6 @@ async def report_pdf(request: Request):
         pdf, media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{fname}_density.pdf"'},
     )
-
-
-@app.get("/site")
-def site(request: Request):
-    return templates.TemplateResponse(request, "site.html",
-                                      {"unit_sizes": UNIT_SIZES})
-
-
-@app.post("/site")
-async def site_massing(request: Request):
-    form = await request.form()
-    upload = form.get("kml")
-    if upload is None or not getattr(upload, "filename", ""):
-        return templates.TemplateResponse(
-            request, "_site_error.html",
-            {"message": "Please choose a KML file to upload."})
-    data = await upload.read()
-
-    params = MassingParams(
-        setback=_num(form.get("setback"), 3),
-        floors=int(_num(form.get("floors"), 8)),
-        floor_height=_num(form.get("floor_height"), 3),
-        gap=_num(form.get("gap"), 8),
-        coverage_cap=_num(form.get("coverage_cap"), 50),
-        veranda_pct=_num(form.get("veranda"), 25),
-        min_2bed_pct=_num(form.get("min_2bed"), 50),
-        max_1bed_pct=_num(form.get("max_1bed"), 30),
-        road_sides=[s for s in ("N", "E", "S", "W") if f"road_{s}" in form],
-    )
-    try:
-        result = compute_massing(data, params)
-    except ValueError as exc:
-        return templates.TemplateResponse(
-            request, "_site_error.html", {"message": str(exc)})
-    return templates.TemplateResponse(request, "_site_results.html",
-                                      {"r": result, "unit_sizes": UNIT_SIZES})
 
 
 @app.post("/report.xlsx")

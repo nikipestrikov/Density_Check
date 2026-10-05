@@ -4,5 +4,4 @@ python-multipart
 fpdf2
 pandas
 xlsxwriter
-shapely
 uvicorn[standard]
