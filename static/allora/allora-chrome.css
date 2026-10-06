@@ -1,0 +1,126 @@
+/* Allora header & footer kit — matches the allora.capital site chrome.
+   Self-contained: no other stylesheet needed. Every class is prefixed `ac-` so it can sit inside
+   any app (FastAPI/Jinja, Streamlit components, static sites) without clashing.
+   Asset paths are relative to this file: keep the assets/ folder next to it. */
+
+@font-face { font-family: 'Giga Sans'; font-weight: 400; font-style: normal; font-display: swap; src: url('assets/fonts/GigaSans-Regular.woff2') format('woff2'); }
+@font-face { font-family: 'Giga Sans'; font-weight: 500; font-style: normal; font-display: swap; src: url('assets/fonts/GigaSans-Medium.woff2') format('woff2'); }
+@font-face { font-family: 'Giga Sans'; font-weight: 600; font-style: normal; font-display: swap; src: url('assets/fonts/GigaSans-SemiBold.woff2') format('woff2'); }
+@font-face { font-family: 'Giga Sans'; font-weight: 700; font-style: normal; font-display: swap; src: url('assets/fonts/GigaSans-Bold.woff2') format('woff2'); }
+
+:root {
+  --ac-noxen: #0A2536;      /* deep navy */
+  --ac-navaris: #33566C;    /* footer field (as on allora.capital) */
+  --ac-nivelle: #F3FAFF;
+  --ac-cymaris: #5EA8A8;    /* teal accent */
+  --ac-cymaris-deep: #4F9595;
+  --ac-claria: #DAF6EF;
+  --ac-bar: rgba(248, 248, 248, 0.75);
+  --ac-font: 'Giga Sans', 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ac-header-h: 90px;
+  --ac-gutter: clamp(20px, 7vw, 100px);
+  --ac-ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ------------------------------------------------------------------ header */
+.ac-header { position: sticky; top: 0; z-index: 100; background: var(--ac-bar); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); font-family: var(--ac-font); }
+.ac-header--fixed { position: fixed; left: 0; right: 0; }
+/* Over a photo or dark hero: transparent until the page scrolls (allora-chrome.js adds .is-scrolled). */
+.ac-header--overlay:not(.is-scrolled) { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.ac-header--overlay:not(.is-scrolled) .ac-logo { filter: brightness(0) invert(1); }
+.ac-header--overlay:not(.is-scrolled) .ac-nav a,
+.ac-header--overlay:not(.is-scrolled) .ac-icon { color: #fff; }
+.ac-header--overlay:not(.is-scrolled) .ac-burger span,
+.ac-header--overlay:not(.is-scrolled) .ac-burger span::before,
+.ac-header--overlay:not(.is-scrolled) .ac-burger span::after { background: #fff; }
+.ac-header--overlay:not(.is-scrolled) .ac-product { color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.35); }
+
+.ac-header__in { display: flex; align-items: center; gap: 24px; height: var(--ac-header-h); max-width: 1640px; margin: 0 auto; padding: 0 var(--ac-gutter); box-sizing: border-box; }
+.ac-brand { display: flex; align-items: center; gap: 14px; flex: none; text-decoration: none; }
+.ac-logo { display: block; width: 112px; height: auto; transition: filter 220ms var(--ac-ease); }
+/* Optional product label after the logo, e.g. RESEARCH, DASHBOARD, MODEL */
+.ac-product { font-size: 11.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; line-height: 18px; color: var(--ac-cymaris-deep); padding-left: 14px; border-left: 1px solid rgba(10,37,54,0.2); }
+
+/* Optional navigation. The main site has none; apps add their own sections here. */
+.ac-nav { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+.ac-nav a { padding: 8px 14px; font-size: 15px; font-weight: 500; letter-spacing: -0.02em; color: #000; text-decoration: none; transition: color 140ms var(--ac-ease); }
+.ac-nav a:hover, .ac-nav a[aria-current="page"] { color: var(--ac-cymaris-deep); }
+.ac-nav a[aria-current="page"]::after { content: ""; display: block; height: 2px; margin-top: 3px; border-radius: 2px; background: var(--ac-cymaris); }
+.ac-nav .ac-nav__ext { color: rgba(10,37,54,0.55); font-size: 14px; }
+
+.ac-header__right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.ac-nav + .ac-header__right { margin-left: 12px; }
+.ac-icon { display: grid; place-items: center; width: 30px; height: 30px; color: #000; border-radius: 50%; transition: color 140ms var(--ac-ease), transform 140ms var(--ac-ease); }
+.ac-icon svg { width: 15px; height: 15px; display: block; }
+.ac-icon:hover { color: var(--ac-cymaris-deep); transform: translateY(-1px); }
+.ac-header :focus-visible, .ac-footer :focus-visible { outline: 3px solid rgba(94,168,168,0.55); outline-offset: 2px; border-radius: 6px; }
+
+.ac-burger { display: none; width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; padding: 0; }
+.ac-burger span, .ac-burger span::before, .ac-burger span::after { display: block; width: 20px; height: 2px; background: #000; border-radius: 2px; position: relative; margin: 0 auto; transition: transform 220ms var(--ac-ease); }
+.ac-burger span::before, .ac-burger span::after { content: ""; position: absolute; left: 0; }
+.ac-burger span::before { top: -6px; } .ac-burger span::after { top: 6px; }
+.ac-burger[aria-expanded="true"] span { background: transparent !important; }
+.ac-burger[aria-expanded="true"] span::before { transform: translateY(6px) rotate(45deg); }
+.ac-burger[aria-expanded="true"] span::after { transform: translateY(-6px) rotate(-45deg); }
+
+@media (max-width: 1000px) {
+  .ac-header { --ac-header-h: 72px; }
+  .ac-header:has(.ac-nav) .ac-burger { display: block; }
+  .ac-nav { display: none; position: absolute; top: var(--ac-header-h); left: 0; right: 0; flex-direction: column; align-items: stretch; gap: 0; margin: 0; padding: 8px var(--ac-gutter) 20px; background: rgba(248,248,248,0.97); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: 0 12px 24px rgba(10,37,54,0.08); }
+  .ac-nav.is-open { display: flex; }
+  .ac-nav a { padding: 12px 0; border-bottom: 1px solid rgba(10,37,54,0.08); color: #000 !important; }
+  .ac-nav a[aria-current="page"]::after { display: none; }
+  .ac-nav + .ac-header__right { margin-left: auto; }
+}
+@media (max-width: 420px) { .ac-product { display: none; } .ac-header__right { gap: 4px; } }
+
+/* ------------------------------------------------------------------ channel card (optional) */
+/* A rounded invitation that overlaps the top of the footer. Place it directly before .ac-footer. */
+.ac-card { --ac-overlap: clamp(64px, 7vw, 104px); position: relative; z-index: 2; margin-bottom: calc(-1 * var(--ac-overlap)); padding: 0 var(--ac-gutter); font-family: var(--ac-font); }
+.ac-card__box { position: relative; overflow: hidden; max-width: 1160px; margin: 0 auto; border-radius: 18px; background: linear-gradient(160deg, var(--ac-noxen) 0%, #1d3a4d 55%, var(--ac-navaris) 100%); box-shadow: 0 2px 4px rgba(10,37,54,0.08), 0 24px 56px rgba(10,37,54,0.22); }
+.ac-card__mark { position: absolute; left: -60px; bottom: -90px; width: 300px; opacity: 0.05; pointer-events: none; }
+.ac-card__in { position: relative; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 28px 40px; padding: clamp(32px, 5vw, 60px) clamp(24px, 5vw, 64px); }
+.ac-card__txt { display: flex; flex-direction: column; gap: 10px; max-width: 620px; }
+.ac-card__eyebrow { font-size: 12.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ac-cymaris); }
+.ac-card__h { margin: 0; font-size: clamp(22px, 2.4vw, 30px); font-weight: 700; line-height: 1.25; letter-spacing: -0.015em; color: #fff; }
+.ac-card__h em { font-style: italic; color: var(--ac-cymaris); }
+.ac-card__p { margin: 0; font-size: 15px; line-height: 1.6; color: rgba(243,250,255,0.75); }
+.ac-btn { display: inline-flex; align-items: center; min-height: 50px; padding: 0 28px; border-radius: 999px; background: var(--ac-cymaris); color: #fff; font: 600 16px var(--ac-font); text-decoration: none; transition: background 220ms var(--ac-ease), box-shadow 220ms var(--ac-ease); }
+.ac-btn:hover { background: #538f92; box-shadow: 0 12px 32px rgba(94,168,168,0.3); color: #fff; }
+.ac-card + .ac-footer .ac-footer__main { padding-top: calc(clamp(64px, 7vw, 104px) + clamp(56px, 6vw, 88px)); }
+
+/* ------------------------------------------------------------------ footer */
+.ac-footer { background: var(--ac-navaris); color: #fff; text-align: center; font-family: var(--ac-font); }
+.ac-footer a { color: #fff; }
+.ac-footer__main { display: flex; flex-direction: column; align-items: center; padding: clamp(56px, 6vw, 88px) var(--ac-gutter) 40px; }
+.ac-footer__h { margin: 0; font-weight: 600; font-size: clamp(40px, 4.5vw, 64px); line-height: 1; letter-spacing: -0.01em; color: var(--ac-nivelle); }
+.ac-footer__h em { font-style: normal; padding: 0 3px; background: linear-gradient(var(--ac-cymaris), var(--ac-cymaris)) 0 90% / 100% 28% no-repeat; }
+.ac-footer__note { margin: 14px 0 0; font-weight: 600; font-size: 14.4px; letter-spacing: -0.03em; }
+.ac-pill { display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; width: min(512px, 100%); margin-top: 40px; padding: 4px 4px 4px 20px; border-radius: 999px; background: var(--ac-cymaris); font-weight: 500; font-size: 16px; letter-spacing: -0.02em; text-decoration: none; transition: background 220ms var(--ac-ease); }
+.ac-pill:hover { background: #538f92; }
+.ac-pill__arrow { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: #fff; color: var(--ac-cymaris); transition: transform 220ms var(--ac-ease); }
+.ac-pill:hover .ac-pill__arrow { transform: rotate(45deg); }
+.ac-footer__social { display: flex; gap: 20px; margin-top: 32px; }
+.ac-footer__social .ac-icon { width: 53px; height: 53px; color: #fff; background: rgba(0,0,0,0.06); transform: none; }
+.ac-footer__social .ac-icon:hover { background: rgba(0,0,0,0.16); color: #fff; }
+.ac-footer__social .ac-icon svg { width: 18px; height: 18px; }
+.ac-footer__partners { display: flex; align-items: center; justify-content: center; gap: 40px; margin-top: 52px; }
+.ac-footer__partners img { display: block; height: 28px; width: auto; opacity: 0.92; }
+.ac-footer__links { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 52px; font-weight: 600; font-size: 15px; }
+.ac-footer__links > div { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 22px; }
+.ac-footer__links a { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.ac-footer__links a:hover { color: var(--ac-claria); }
+/* Optional row for the app's own links */
+.ac-footer__app { margin-top: 14px; font-weight: 500; font-size: 13.5px; }
+.ac-footer__app a { text-decoration: none; color: rgba(243,250,255,0.75); }
+.ac-footer__bottom { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; padding: 28px var(--ac-gutter) 28px; font-size: 13.5px; max-width: 1640px; margin: 0 auto; box-sizing: border-box; }
+.ac-footer__bottom span:first-child { color: rgba(255,255,255,0.88); }
+.ac-footer__bottom span:last-child { font-weight: 600; }
+.ac-footer__fine { padding: 0 var(--ac-gutter) 28px; margin: -14px auto 0; max-width: 1640px; box-sizing: border-box; font-size: 12px; color: rgba(243,250,255,0.6); text-align: left; }
+@media (max-width: 640px) {
+  .ac-footer__social { gap: 14px; }
+  .ac-footer__partners { gap: 28px; }
+  .ac-footer__bottom { flex-direction: column; align-items: center; text-align: center; }
+  .ac-footer__fine { text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) { .ac-header *, .ac-footer *, .ac-card * { transition: none !important; } }

@@ -3,26 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0A2536">
+  <meta name="theme-color" content="#F8F8F8">
   <title>{% block title %}Allora · Density Analysis{% endblock %}</title>
   <link rel="manifest" href="/static/manifest.webmanifest">
   <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="stylesheet" href="/static/css/brand.css?v=4">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="/static/allora/allora-chrome.css">
+  <link rel="stylesheet" href="/static/css/brand.css?v=5">
+  <link rel="icon" href="/static/allora/assets/favicon.ico">
   <script src="/static/js/htmx.min.js" defer></script>
 </head>
 <body class="{% block body_class %}{% endblock %}">
-  <header class="appbar">
-    <a class="brand" href="/">
-      <img src="/assets/logos/allora_logo_white.png" alt="Allora">
-      <span class="brand-sub">Land feasibility</span>
-    </a>
-    <div class="appbar-actions">{% block appbar_actions %}{% endblock %}</div>
-  </header>
+  {% set header_actions %}{% block appbar_actions %}{% endblock %}{% endset %}
+  {% include "_allora_header.html" %}
 
   {% block content %}{% endblock %}
 
+  {% include "_allora_footer.html" %}
+
+  <script src="/static/allora/allora-chrome.js" defer></script>
   {% block scripts %}{% endblock %}
   <script>
     if ("serviceWorker" in navigator) {

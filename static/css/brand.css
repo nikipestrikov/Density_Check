@@ -22,7 +22,7 @@
   --pane:420px;
 }
 *{ box-sizing:border-box; }
-html{ -webkit-text-size-adjust:100%; scroll-padding-top:76px; }
+html{ -webkit-text-size-adjust:100%; scroll-padding-top:96px; }
 body{
   margin:0; background:var(--bg); color:var(--noxen);
   font-family:"Giga Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -34,21 +34,12 @@ a{ color:var(--cymaris); }
 small,.muted{ color:var(--muted); }
 [hidden]{ display:none !important; }
 
-/* ---- App bar -------------------------------------------------------- */
-.appbar{
-  position:sticky; top:0; z-index:30; background:var(--noxen);
-  padding:10px 18px; display:flex; align-items:center; gap:18px;
-  padding-top:calc(10px + env(safe-area-inset-top,0));
-}
-.brand{ display:flex; align-items:center; gap:10px; text-decoration:none; }
-.brand img{ height:22px; display:block; }
-.brand-sub{ color:#9fc3c3; font-size:.7rem; letter-spacing:.08em; text-transform:uppercase;
-  border-left:1px solid rgba(255,255,255,.2); padding-left:10px; white-space:nowrap; }
-.appbar-actions{ margin-left:auto; }
+/* ---- Header actions (inside the Allora header) -------------------- */
 .icon-btn{ font:inherit; font-size:.85rem; font-weight:600; cursor:pointer;
-  background:rgba(255,255,255,.1); color:#fff; border:0; border-radius:8px; padding:8px 12px; }
-.icon-btn:hover{ background:rgba(255,255,255,.18); }
-.icon-btn.sm{ font-size:.75rem; padding:5px 9px; }
+  background:rgba(10,37,54,.06); color:var(--noxen); border:0; border-radius:999px; padding:8px 14px; }
+.icon-btn:hover{ background:rgba(10,37,54,.12); }
+.icon-btn.sm{ font-size:.75rem; padding:5px 9px; border-radius:8px; }
+.ac-header__right .menu{ margin-right:10px; }
 
 .menu{ position:relative; }
 .menu-pop{ position:absolute; right:0; top:calc(100% + 6px); min-width:220px; background:#fff;
@@ -58,20 +49,17 @@ small,.muted{ color:var(--muted); }
 .menu-pop button:hover{ background:var(--field); }
 .menu-pop .danger{ color:var(--bad); }
 
-@media (max-width:620px){
-  .appbar{ flex-wrap:wrap; gap:10px 12px; padding:10px 14px; }
-  .brand-sub{ display:none; }
-    }
-
 /* ---- Workspace: inputs left, results right -------------------------- */
-.workspace{ max-width:1280px; margin:0 auto; padding:18px 14px 110px;
+.workspace{ max-width:1280px; margin:0 auto; padding:18px 14px 40px;
   display:grid; gap:18px; grid-template-columns:minmax(0,1fr); }
 @media (min-width:1000px){
   .workspace{ grid-template-columns:minmax(0,1fr) var(--pane); padding:22px 22px 60px; align-items:start; }
-  .results-pane{ position:sticky; top:72px; max-height:calc(100vh - 88px); overflow:auto;
+  .results-pane{ position:sticky; top:106px; max-height:calc(100vh - 122px); overflow:auto;
     padding-right:4px; scrollbar-width:thin; }
   .mbar{ display:none !important; }
 }
+/* keep the footer clear of the floating mobile summary bar */
+@media (max-width:999px){ .ac-footer{ padding-bottom:84px; } }
 
 .card{ background:#fff; border:1px solid var(--hairline); border-radius:var(--radius);
   box-shadow:var(--shadow); padding:18px; margin-bottom:14px; }
